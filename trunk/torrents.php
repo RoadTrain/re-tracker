@@ -156,7 +156,7 @@ $GPC = array(
 	// Options
 	'active'        => array('a',    0,       'int'),
 	'my'            => array('my',   0,       'int'),
-	'title_match'   => array('nm',   null, 'string'),
+	'title_match'   => array('nm',   0,    'string'),
 	'order'         => array('o',    1,       'int'),
 	'sort'          => array('s',    2,       'int'),
 	'seed_exist'    => array('sd',   0,       'int'),
