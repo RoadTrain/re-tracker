@@ -3,16 +3,8 @@
 // MySQL settings
 $cfg['dbhost'] = "localhost";
 $cfg['dbuser'] = "root";
-$cfg['dbpass'] = "vertrigo";
-$cfg['dbname'] = "fast";
-
-///*
-// MySQL settings
-$cfg['dbhost'] = "re-tracker.ru";
-$cfg['dbuser'] = "iphonez_retrac01";
-$cfg['dbpass'] = "ahkae5Qu";
-$cfg['dbname'] = "wwwiphonezsu_retracker";
-//*/
+$cfg['dbpass'] = "root";
+$cfg['dbname'] = "re-tracker";
 
 $tracker       = 'tracker';
 $tracker_stats = 'tracker_stats';
@@ -29,6 +21,7 @@ $cfg['compact_always']     = false; // Enable compact mode always (don't check c
 $cfg['ignore_reported_ip'] = false; // Ignore IP from GET query
 $cfg['allow_internal_ip']  = true;  // Allow IP from local, etc
 $cfg['verify_reported_ip'] = false; // Verify reported IP?
+$cfg['base_path']          = $_SERVER['DOCUMENT_ROOT']; // Without end slash
 
 // Cache
 $cfg['cache_type']  = 'filecache';  // Available cache types: none, APC, memcached, sqlite, filecache
