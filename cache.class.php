@@ -114,12 +114,12 @@ class cache_memcached extends cache_common
 			$this->connected = true;
 		}
 		
-		if (defined('DBG_LOG')&&DBG_LOG)
+		if (defined('DBG_LOG') && DBG_LOG)
 		{
-			dbg_log(' ', 'CACHE-connect'.($this->connected ? '' : '-FAIL'));
+			dbg_log(' ', 'CACHE-connect' . ($this->connected ? '' : '-FAIL'));
 		}
 		
-		if (!$this->connected&&$this->cfg['con_required'])
+		if (!$this->connected && $this->cfg['con_required'])
 		{
 			die('Could not connect to memcached server');
 		}
@@ -142,7 +142,7 @@ class cache_memcached extends cache_common
 		{
 			$this->connect();
 		}
-		$ttl = ($ttl>86400||!$ttl) ? 86400 : intval($ttl);
+		$ttl = ($ttl > 86400 || !$ttl) ? 86400 : intval($ttl);
 		return ($this->connected) ? $this->memcache->set($name, $value, false, $ttl) : false;
 	}
 
@@ -185,9 +185,9 @@ class cache_sqlite extends cache_common
 
 		$result = $this->db->query("
 			SELECT cache_value
-			FROM ".$this->cfg['table_name']."
-			WHERE cache_name = '".sqlite_escape_string($name)."'
-				AND cache_expire_time > ".TIMENOW."
+			FROM " . $this->cfg['table_name'] . "
+			WHERE cache_name = '" . sqlite_escape_string($name) . "'
+				AND cache_expire_time > " . TIMENOW . "
 			LIMIT 1
 		");
 		
@@ -198,11 +198,11 @@ class cache_sqlite extends cache_common
 	{
 
 		$name = sqlite_escape_string($name);
-		$expire = TIMENOW+$ttl;
+		$expire = TIMENOW + $ttl;
 		$value = sqlite_escape_string(serialize($value));
 		
 		$result = $this->db->query("
-			REPLACE INTO ".$this->cfg['table_name']."
+			REPLACE INTO " . $this->cfg['table_name'] . "
 				(cache_name, cache_expire_time, cache_value)
 			VALUES
 				('$name', '$expire', '$value')
@@ -215,8 +215,8 @@ class cache_sqlite extends cache_common
 	{
 
 		$result = $this->db->query("
-			DELETE FROM ".$this->cfg['table_name']."
-			WHERE cache_name = '".sqlite_escape_string($name)."'
+			DELETE FROM " . $this->cfg['table_name'] . "
+			WHERE cache_name = '" . sqlite_escape_string($name) . "'
 		");
 		
 		return (bool)$result;
@@ -226,7 +226,7 @@ class cache_sqlite extends cache_common
 	{
 
 		$result = $this->db->query("
-			DELETE FROM ".$this->cfg['table_name']."
+			DELETE FROM " . $this->cfg['table_name'] . "
 			WHERE cache_expire_time < $expire_time
 		");
 		
@@ -250,7 +250,7 @@ class cache_file extends cache_common
 	public function get($name)
 	{
 
-		$filename = $this->dir.$name.'.php';
+		$filename = $this->dir . $name . '.php';
 		
 		if (file_exists($filename))
 		{
@@ -268,12 +268,12 @@ class cache_file extends cache_common
 			return false;
 		}
 		
-		$filename = $this->dir.$name.'.php';
-		$expire = TIMENOW+$ttl;
+		$filename = $this->dir . $name . '.php';
+		$expire = TIMENOW + $ttl;
 		$cache_data = array('expire'=>$expire, 'value'=>$value);
 		
 		$filecache = "<?php\n";
-		$filecache .= '$filecache = '.var_export($cache_data, true).";\n";
+		$filecache .= '$filecache = ' . var_export($cache_data, true) . ";\n";
 		$filecache .= '?>';
 		
 		return (bool)file_write($filecache, $filename, false, true, true);
@@ -282,7 +282,7 @@ class cache_file extends cache_common
 	public function rm($name)
 	{
 
-		$filename = $this->dir.$name.'.php';
+		$filename = $this->dir . $name . '.php';
 		if (file_exists($filename))
 		{
 			return (bool)unlink($filename);
@@ -299,15 +299,15 @@ class cache_file extends cache_common
 		{
 			if ($dh = opendir($dir))
 			{
-				while ((($file = readdir($dh))!==false))
+				while ((($file = readdir($dh)) !== false))
 				{
-					if ($file!="."&&$file!="..")
+					if ($file != "." && $file != "..")
 					{
-						$filename = $dir.$file;
+						$filename = $dir . $file;
 						
 						include ($filename);
 						
-						if (empty($filecache['expire']) or ($filecache['expire']<$expire_time))
+						if (empty($filecache['expire']) or ($filecache['expire'] < $expire_time))
 						{
 							unlink($filename);
 						}
@@ -359,7 +359,7 @@ class sqlite_common
 			die('Error: Sqlite extension not installed');
 		}
 		$this->cfg = array_merge($this->cfg, $cfg);
-		$this->dbg_enabled = (SQL_DEBUG&&DBG_USER&&!empty($_COOKIE['sql_log']));
+		$this->dbg_enabled = (SQL_DEBUG && DBG_USER && !empty($_COOKIE['sql_log']));
 	}
 
 	protected function connect()
@@ -377,9 +377,9 @@ class sqlite_common
 		}
 		
 		if (DBG_LOG)
-			dbg_log(' ', $this->cfg['log_name'].'-connect'.($this->connected ? '' : '-FAIL'));
+			dbg_log(' ', $this->cfg['log_name'] . '-connect' . ($this->connected ? '' : '-FAIL'));
 		
-		if (!$this->connected&&$this->cfg['con_required'])
+		if (!$this->connected && $this->cfg['con_required'])
 		{
 			trigger_error($sqlite_error, E_USER_ERROR);
 		}
@@ -409,11 +409,11 @@ class sqlite_common
 		$this->cur_query = $query;
 		$this->debug('start');
 		
-		$query_function = ($type==='unbuffered') ? 'sqlite_unbuffered_query' : 'sqlite_query';
+		$query_function = ($type === 'unbuffered') ? 'sqlite_unbuffered_query' : 'sqlite_query';
 		
 		if (!$result = $query_function($this->dbh, $query, SQLITE_ASSOC))
 		{
-			if (!$this->table_create_attempts&&!sqlite_num_rows(sqlite_query($this->dbh, "PRAGMA table_info({$this->cfg['table_name']})")))
+			if (!$this->table_create_attempts && !sqlite_num_rows(sqlite_query($this->dbh, "PRAGMA table_info({$this->cfg['table_name']})")))
 			{
 				if ($this->create_table())
 				{
@@ -457,7 +457,7 @@ class sqlite_common
 	public function get_error_msg()
 	{
 
-		return 'SQLite error #'.($err_code = sqlite_last_error($this->dbh)).': '.sqlite_error_string($err_code);
+		return 'SQLite error #' . ($err_code = sqlite_last_error($this->dbh)) . ': ' . sqlite_error_string($err_code);
 	}
 
 	public function trigger_error($msg = 'DB Error')
@@ -478,7 +478,7 @@ class sqlite_common
 		$id = & $this->dbg_id;
 		$dbg = & $this->dbg[$id];
 		
-		if ($mode=='start')
+		if ($mode == 'start')
 		{
 			$this->sql_starttime = utime();
 			
@@ -488,9 +488,9 @@ class sqlite_common
 			$dbg['line'] = $this->debug_find_source('line');
 			$dbg['time'] = '';
 		}
-		else if ($mode=='stop')
+		else if ($mode == 'stop')
 		{
-			$this->cur_query_time = utime()-$this->sql_starttime;
+			$this->cur_query_time = utime() - $this->sql_starttime;
 			$this->sql_timetotal += $this->cur_query_time;
 			$dbg['time'] = $this->cur_query_time;
 			$id++;
@@ -502,7 +502,7 @@ class sqlite_common
 
 		foreach (debug_backtrace() as $trace)
 		{
-			if ($trace['file']!==__FILE__)
+			if ($trace['file'] !== __FILE__)
 			{
 				switch ($mode)
 				{
@@ -511,7 +511,7 @@ class sqlite_common
 					case 'line':
 						return $trace['line'];
 					default:
-						return hide_bb_path($trace['file']).'('.$trace['line'].')';
+						return hide_bb_path($trace['file']) . '(' . $trace['line'] . ')';
 				}
 			}
 		}
