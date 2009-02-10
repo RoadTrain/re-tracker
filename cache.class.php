@@ -24,6 +24,13 @@ class cache_common
 	{
 		return false;
 	}
+	/**
+	* Garbage collector
+	*/
+	function gc ()
+	{
+		return false;
+	}
 }
 
 class cache_apc extends cache_common
