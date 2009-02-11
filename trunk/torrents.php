@@ -252,6 +252,24 @@ switch($sort)
 
 if(isset($_COOKIE['adm'])) $admin = true;
 
+$city = intval($city);
+if(!$city)
+{
+	$city = 2;
+}
+else
+{
+	if(!isset($trackers['Город'][$city]))
+	{
+		 $city = 2;
+	}
+	if(!isset($trackers['Провайдеры '. $trackers['Город'][$city]]))
+	{
+		$city = 2; //Moscow
+		$isp = 1; //Corbina
+	}
+}
+
 ?>
 
 <form method="GET" name="post" action="torrents.php?<?=SID;?>">
@@ -321,7 +339,7 @@ if(isset($_COOKIE['adm'])) $admin = true;
 				<legend>Город и провайдер</legend>
 				<div>
 					<p class="select">
-						<select name="city" id="city" onchange="$('#isp').load('torrents.php?isp_list='+$('#city').val());">
+						<select name="city" id="city" onchange="if(this.value>0) $('#isp').load('torrents.php?isp_list='+$('#city').val());">
 							<option value="0">&raquo; Выберите город</option>
 							<?=city_select($trackers['Город'], $city);?>
 						</select>
