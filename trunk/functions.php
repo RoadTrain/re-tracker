@@ -135,9 +135,17 @@ function is_url($url)
 {
     $url = substr($url,-1) == "/" ? substr($url,0,-1) : $url;
     if ( !$url || $url=="" ) return false;
+    $empty = array();
+    $empty['scheme'] = "";
+    $empty['user'] = "";
+    $empty['pass'] = "";
+    $empty['path'] = "";
+    $empty['query'] = "";
+    
     if ( !( $parts = @parse_url( $url ) ) ) return false;
     else {
-        if ( $parts['scheme'] != "http" && $parts['scheme'] != "https" && $parts['scheme'] != "ftp") return false;
+    	$parts = array_merge($empty, $parts);
+        if ( !isset($parts['scheme']) || ($parts['scheme'] != "http" && $parts['scheme'] != "https" && $parts['scheme'] != "ftp")) return false;
         else if ( !eregi( "^[0-9a-z]([-.]?[0-9a-z])*.[a-z]{2,4}$", $parts['host'], $regs ) ) return false;
         else if ( !eregi( "^([0-9a-z-]|[_])*$", $parts['user'], $regs ) ) return false;
         else if ( !eregi( "^([0-9a-z-]|[_])*$", $parts['pass'], $regs ) ) return false;
@@ -190,7 +198,8 @@ function get_trackers()
 {
 	global $cache, $cfg;
 	
-	if ($trackers = $cache->get('trackers'))
+	$trackers = $cache->get('trackers');
+	if (!empty($trackers))
 	{
 		return $trackers;
 	}
@@ -198,7 +207,7 @@ function get_trackers()
 	$file = @file_get_contents(TRACKERS_URL);
 	$file = iconv("UTF-16", "CP1251", $file);
 	
-	if($file) 
+	if($file)
 	{
 		$filepath = $cfg['cache']['filecache']['path']."trackers.list";
 		
@@ -324,44 +333,44 @@ function generate_pagination($base_url, $num_items, $per_page, $start_item, $add
 	return str_replace('&amp;start=0', '', $return);
 }
 
-function base32_encode ($inString) 
-{ 
-    $outString = ""; 
-    $compBits = ""; 
-    $BASE32_TABLE = array( 
-                          '00000' => 0x61, 
-                          '00001' => 0x62, 
-                          '00010' => 0x63, 
-                          '00011' => 0x64, 
-                          '00100' => 0x65, 
-                          '00101' => 0x66, 
-                          '00110' => 0x67, 
-                          '00111' => 0x68, 
-                          '01000' => 0x69, 
-                          '01001' => 0x6a, 
-                          '01010' => 0x6b, 
-                          '01011' => 0x6c, 
-                          '01100' => 0x6d, 
-                          '01101' => 0x6e, 
-                          '01110' => 0x6f, 
-                          '01111' => 0x70, 
-                          '10000' => 0x71, 
-                          '10001' => 0x72, 
-                          '10010' => 0x73, 
-                          '10011' => 0x74, 
-                          '10100' => 0x75, 
-                          '10101' => 0x76, 
-                          '10110' => 0x77, 
-                          '10111' => 0x78, 
-                          '11000' => 0x79, 
-                          '11001' => 0x7a, 
-                          '11010' => 0x32, 
-                          '11011' => 0x33, 
-                          '11100' => 0x34, 
-                          '11101' => 0x35, 
-                          '11110' => 0x36, 
-                          '11111' => 0x37, 
-                          ); 
+function base32_encode ($inString)
+{
+    $outString = "";
+    $compBits = "";
+    $BASE32_TABLE = array(
+                          '00000' => 0x61,
+                          '00001' => 0x62,
+                          '00010' => 0x63,
+                          '00011' => 0x64,
+                          '00100' => 0x65,
+                          '00101' => 0x66,
+                          '00110' => 0x67,
+                          '00111' => 0x68,
+                          '01000' => 0x69,
+                          '01001' => 0x6a,
+                          '01010' => 0x6b,
+                          '01011' => 0x6c,
+                          '01100' => 0x6d,
+                          '01101' => 0x6e,
+                          '01110' => 0x6f,
+                          '01111' => 0x70,
+                          '10000' => 0x71,
+                          '10001' => 0x72,
+                          '10010' => 0x73,
+                          '10011' => 0x74,
+                          '10100' => 0x75,
+                          '10101' => 0x76,
+                          '10110' => 0x77,
+                          '10111' => 0x78,
+                          '11000' => 0x79,
+                          '11001' => 0x7a,
+                          '11010' => 0x32,
+                          '11011' => 0x33,
+                          '11100' => 0x34,
+                          '11101' => 0x35,
+                          '11110' => 0x36,
+                          '11111' => 0x37,
+                          );
     
     /* Turn the compressed string into a string that represents the bits as 0 and 1. */
     for ($i = 0; $i < strlen($inString); $i++) {
@@ -374,14 +383,14 @@ function base32_encode ($inString)
     }
     
     /* Create an array by chunking it every 5 chars */
-    $fiveBitsArray = split("\n",rtrim(chunk_split($compBits, 5, "\n"))); 
+    $fiveBitsArray = split("\n",rtrim(chunk_split($compBits, 5, "\n")));
     
     /* Look-up each chunk and add it to $outstring */
-    foreach($fiveBitsArray as $fiveBitsString) { 
-        $outString .= chr($BASE32_TABLE[$fiveBitsString]); 
-    } 
+    foreach($fiveBitsArray as $fiveBitsString) {
+        $outString .= chr($BASE32_TABLE[$fiveBitsString]);
+    }
     
-    return $outString; 
+    return $outString;
 }
 
 function hex2bin($h)
@@ -392,7 +401,7 @@ function hex2bin($h)
   return $r;
 }
 
-function sqlwildcardesc($x) 
+function sqlwildcardesc($x)
 {
 	return str_replace(array("%","_"), array("\\%","\\_"), mysql_real_escape_string($x));
 }
@@ -533,4 +542,65 @@ function bdecode_r ($str, &$pos)
 			}
 		}
 	}
+}
+
+/**
+ *  Функция возвращает файл и строку вызова (трассировка назад по вызовам функций).
+ *  $step == 0 - файл и строка вызова этой функции
+ *  @access public
+ *  @return array Структура: array( '/home/site/filename.inc', 222 )
+ *  @param integer $step Шаг назад
+ */
+function LastFileLine($step= 0) {
+
+    $export= array ('undefined', 0);
+    if (function_exists('debug_backtrace')) {
+        $bt= debug_backtrace();
+        if (isset ($bt[$step]['file']) && $bt[$step]['line']) {
+            $export= array ($bt[$step]['file'], $bt[$step]['line']);
+        }
+        if(isset($_SERVER['WINDIR'])) {
+            $export[0] = preg_replace('/\\\\/','/',$export[0]);
+        }
+
+    }
+    else {
+        die('[{Версия PHP4 должна быть равна 4.3.1 или выше}]');
+    }
+
+    unset ($bt, $step);
+    return $export;
+}
+
+/**
+ *  Временная функция для тестирования скриптов.
+ *  Вывод текста.
+ *  @access public
+ *  @param mixed $text Текст для записи
+ *  @param boolean $die Остановить скрипты
+ *  @param boolean $tofile Вывести в файл debug
+ *  @return void
+ */
+function debug($text, $die= true, $tofile= false) {
+
+    $text= print_r($text, true);
+
+    list ($file, $line)= LastFileLine(1);
+
+    if ($tofile) {
+        $text= $text."  ".$file.': '.$line."\r\n\r\n";
+        $fp= fopen($_SERVER['DOCUMENT_ROOT'].'/debug.inc', 'a+');
+        fwrite($fp, $text);
+        fclose($fp);
+
+        if ($die)
+        die();
+    }
+    else {
+        $text= '<pre>|'.htmlspecialchars($text).'|</pre><br><b>'.$file.': '.$line.'</b>';
+        if ($die)
+        die($text);
+        else
+        echo $text;
+    }
 }
