@@ -92,16 +92,20 @@ function create_date ($format, $gmepoch, $tz = null)
 function create_magnet($dn, $xl = false, $btih = '', $tr = '')
 {
 	$magnet = 'magnet:?';
-	if ($dn){
+	if ($dn)
+	{
 		$magnet .= 'dn=' . $dn; // download name
 	}
-	if ($xl){
+	if ($xl)
+	{
 		$magnet .= '&xl=' . $xl; // size
 	}
-	if ($btih){
+	if ($btih)
+	{
 		$magnet .= '&xt=urn:btih:' . $btih; // bittorrent info_hash (Base32)
 	}
-	if ($tr){
+	if ($tr)
+	{
 		$magnet .= '&tr=' . $tr; // gnutella sha1 (base32)
 	}
 	return $magnet;
@@ -135,20 +139,21 @@ function is_url($url)
 {
     $url = substr($url,-1) == "/" ? substr($url,0,-1) : $url;
     if ( !$url || $url=="" ) return false;
-    $empty = array();
-    $empty['scheme'] = "";
-    $empty['user'] = "";
-    $empty['pass'] = "";
-    $empty['path'] = "";
-    $empty['query'] = "";
+	
+    $empty = array(
+		'scheme' => "",
+		'path'   => "",
+		'query'  => "",
+	);
 
     if ( !( $parts = @parse_url( $url ) ) ) return false;
-    else {
+    else 
+	{
     	$parts = array_merge($empty, $parts);
         if ( !isset($parts['scheme']) || ($parts['scheme'] != "http" && $parts['scheme'] != "https" && $parts['scheme'] != "ftp")) return false;
         else if ( !eregi( "^[0-9a-z]([-.]?[0-9a-z])*.[a-z]{2,4}$", $parts['host'], $regs ) ) return false;
-        else if ( !eregi( "^([0-9a-z-]|[_])*$", $parts['user'], $regs ) ) return false;
-        else if ( !eregi( "^([0-9a-z-]|[_])*$", $parts['pass'], $regs ) ) return false;
+        //else if ( !eregi( "^([0-9a-z-]|[_])*$", $parts['user'], $regs ) ) return false;
+        //else if ( !eregi( "^([0-9a-z-]|[_])*$", $parts['pass'], $regs ) ) return false;
         else if ( !eregi( "^[0-9a-z/_.@~-]*$", $parts['path'], $regs ) ) return false;
         else if ( !eregi( "^[0-9a-z?&=#,]*$", $parts['query'], $regs ) ) return false;
     }
@@ -551,20 +556,23 @@ function bdecode_r ($str, &$pos)
  *  @return array Структура: array( '/home/site/filename.inc', 222 )
  *  @param integer $step Шаг назад
  */
-function LastFileLine($step= 0) {
-
+function LastFileLine($step= 0) 
+{
     $export= array ('undefined', 0);
-    if (function_exists('debug_backtrace')) {
+    if (function_exists('debug_backtrace')) 
+	{
         $bt= debug_backtrace();
-        if (isset ($bt[$step]['file']) && $bt[$step]['line']) {
+        if (isset ($bt[$step]['file']) && $bt[$step]['line']) 
+		{
             $export= array ($bt[$step]['file'], $bt[$step]['line']);
         }
-        if(isset($_SERVER['WINDIR'])) {
+        if(isset($_SERVER['WINDIR'])) 
+		{
             $export[0] = preg_replace('/\\\\/','/',$export[0]);
         }
-
     }
-    else {
+    else 
+	{
         die('[{Версия PHP4 должна быть равна 4.3.1 или выше}]');
     }
 
@@ -581,13 +589,14 @@ function LastFileLine($step= 0) {
  *  @param boolean $tofile Вывести в файл debug
  *  @return void
  */
-function debug($text, $die= true, $tofile= false) {
-
+function debug($text, $die= true, $tofile= false) 
+{
     $text= print_r($text, true);
 
     list ($file, $line)= LastFileLine(1);
 
-    if ($tofile) {
+    if ($tofile) 
+	{
         $text= $text."  ".$file.': '.$line."\r\n\r\n";
         $fp= fopen($_SERVER['DOCUMENT_ROOT'].'/debug.inc', 'a+');
         fwrite($fp, $text);
@@ -596,7 +605,8 @@ function debug($text, $die= true, $tofile= false) {
         if ($die)
         die();
     }
-    else {
+    else 
+	{
         $text= '<pre>|'.htmlspecialchars($text).'|</pre><br><b>'.$file.': '.$line.'</b>';
         if ($die)
         die($text);

@@ -35,17 +35,23 @@ if(isset($_SESSION['last_search']) && $_SESSION['last_search'] > (TIMENOW - $sea
 //	die('Too many search attempts. Wait '. (($search_intrv + $_SESSION['last_search']) - TIMENOW) .' seconds');
 	die();
 }
-if(isset($_REQUEST['submit']))
-{
-	$_SESSION['last_search'] = TIMENOW;
-}
+
 
 $http_query = $_GET;
 unset($http_query['start']);
 
 $http_query = array_merge(array_keys($http_query), array_values($http_query));
 $query_id = md5(join('&', $http_query));
+
 unset($http_query);
+
+if(isset($_SESSION['last_query']) AND ($_SESSION['last_query'] <> $query_id))
+{
+	$_SESSION['last_search'] = TIMENOW;
+}
+
+$_SESSION['last_query'] = $query_id;
+
 ?>
 <html>
 
@@ -65,16 +71,6 @@ unset($http_query);
 </style>
 
 <script type="text/javascript">
-function initSpoilers(context)
-{
-	var context = context || 'body';
-	$('div.sp-head', $(context))
-		.click(function(){
-			$(this).toggleClass('unfolded');
-			$(this).next('div.sp-body').slideToggle('fast');
-		})
-	;
-}
 function initExternalLinks(context)
 {
 	var context = context || 'body';
@@ -95,11 +91,12 @@ function getElText (e)
 	}
 	return t;
 }
-function escHTML (txt) {
+function escHTML (txt) 
+{
 	return txt.replace(/</g, '&lt;');
 }
-$(document).ready(function(){
-	//initSpoilers();
+$(document).ready(function()
+{
 	initExternalLinks('#tor-tbl');
 	$('#tor-tbl').tablesorter(); //	{debug: true}
 });
@@ -154,27 +151,27 @@ echo "Всего пиров: <b>{$stats['peers_num']}</b>, всего торрентов: <b>{$stats['to
 $req_type = isset($_GET['o']) ? '_GET' : '_COOKIE';
 
 $GPC = array(
-#	  var_name                                          key_name    def_value        type
-	'start'         => array('start', 0,      'int'),
-	'admin'         => array('adm',   0,      'int'),
+#	  var_name                                          key_name    def_value        type      store into COOKIE
+	'start'         => array('start', 0,      'int',  false),
+	'admin'         => array('adm',   0,      'int',   true),
 	// Options
-	'active'        => array('a',    0,       'int'),
-	'my'            => array('my',   0,       'int'),
-	'title_match'   => array('nm',   0,    'string'),
-	'order'         => array('o',    1,       'int'),
-	'sort'          => array('s',    2,       'int'),
-	'seed_exist'    => array('sd',   0,       'int'),
-	'desc_exist'    => array('ds',   0,       'int'),
+	'active'        => array('a',    0,       'int',   true),
+	'my'            => array('my',   0,       'int',   true),
+	'title_match'   => array('nm',   0,    'string',  false),
+	'order'         => array('o',    1,       'int',   true),
+	'sort'          => array('s',    2,       'int',   true),
+	'seed_exist'    => array('sd',   0,       'int',   true),
+	'desc_exist'    => array('ds',   0,       'int',   true),
 	// City & ISP
-	'city'          => array('city', 0,       'int'),
-	'isp'           => array('isp',  0,       'int'),
+	'city'          => array('city', 0,       'int',   true),
+	'isp'           => array('isp',  0,       'int',   true),
 );
 
 // Define all GPC vars with default values
 foreach ($GPC as $name => $params)
 {
 	$$name = isset(${$req_type}[$params[0]]) ? 	${$req_type}[$params[0]] : $params[1];
-	$$name ? setcookie($params[0], $$name, TIMENOW + $search_opt_keep) : null;
+	$params[3] ? setcookie($params[0], $$name, TIMENOW + $search_opt_keep) : null;
 
 	switch($params[2])
 	{
@@ -250,14 +247,9 @@ switch($sort)
 		break;
 }
 
-if(isset($_COOKIE['adm'])) $admin = true;
+if(isset($_COOKIE['adm']) AND $_COOKIE['adm']) $admin = true;
 
-$city = intval($city);
-if(!$city)
-{
-	$city = 2;
-}
-else
+if($city)
 {
 	if(!isset($trackers['Город'][$city]))
 	{
@@ -357,7 +349,7 @@ else
 </tr>
 <tr>
 	<td class="row3 pad_4 tCenter">
-		<input class="bold long" type="submit" name="submit" value="&nbsp;&nbsp;Поиск&nbsp;&nbsp;" />
+		<input class="bold long" type="submit" name="" value="&nbsp;&nbsp;Поиск&nbsp;&nbsp;" />
 	</td>
 </tr>
 </table>
@@ -389,7 +381,8 @@ else
 		$_SESSION[$query_id] = $count;
 	}
 
-	if(isset($_REQUEST['submit'])) {
+	//if(isset($_REQUEST['submit'])) 
+	//{
 
 	$sql = "SELECT DISTINCT ts.torrent_id, ts.info_hash, ts.seeders, ts.leechers, ts.reg_time,
 				ts.name,
@@ -432,9 +425,12 @@ else
 		$is_url = is_url($comment);
 
 		$path = @parse_url($comment);
-		if(isset($path['scheme']) && $path['host']) {
+		if(isset($path['scheme']) && $path['host']) 
+		{
 			$host = $path['scheme'] .'://'. $path['host'];
-		} else {
+		} 
+		else 
+		{
 			$host = "http://re-tracker.ru";
 		}
 
@@ -490,7 +486,7 @@ else
 </tr>
 <?
 }
-	}
+	//}
 ?>
 <tfoot>
 <tr>
