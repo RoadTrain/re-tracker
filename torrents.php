@@ -5,8 +5,6 @@
 require ('./common.php');
 require ('./functions.php');
 
-//die(print_r(get_trackers()));
-
 db_init();
 
 if (!$cache->used || ($cache->get('next_cleanup') < TIMENOW))
@@ -30,7 +28,7 @@ if (isset($_GET['isp_list']) AND $city = intval($_GET['isp_list']))
 ob_start();
 session_start(); // Start a session for store the options
 
-if($_SESSION['last_search'] > (TIMENOW - $search_intrv))
+if(isset($_SESSION['last_search'] ) && $_SESSION['last_search'] > (TIMENOW - $search_intrv))
 {
 	die('Too many search attempts. Wait '. (($search_intrv + $_SESSION['last_search']) - TIMENOW) .' seconds');
 }
@@ -210,7 +208,7 @@ $join_tr = false;
 $iptype = verify_ip($_SERVER['REMOTE_ADDR']);
 $ip = mysql_escape_string($_SERVER['REMOTE_ADDR']);
 
-if($my) 
+if($my)
 {
 	($iptype == 'ipv4') ? $where[] = "tr.ip   = '$ip'" : null;
 	($iptype == 'ipv6') ? $where[] = "tr.ipv6 = '$ip'" : null;
@@ -335,7 +333,7 @@ if(isset($_COOKIE['adm'])) $admin = true;
 </tr>
 <tr>
 	<td class="row3 pad_4 tCenter">
-		<input class="bold long" type="submit" name="" value="&nbsp;&nbsp;Поиск&nbsp;&nbsp;" />
+		<input class="bold long" type="submit" name="submit" value="&nbsp;&nbsp;Поиск&nbsp;&nbsp;" />
 	</td>
 </tr>
 </table>
@@ -366,6 +364,8 @@ if(isset($_COOKIE['adm'])) $admin = true;
 		unset($c);
 		$_SESSION[$query_id] = $count;
 	}
+	
+	if(isset($_REQUEST['submit'])) {
 
 	$sql = "SELECT DISTINCT ts.torrent_id, ts.info_hash, ts.seeders, ts.leechers, ts.reg_time,
 				ts.name,
@@ -378,8 +378,22 @@ if(isset($_COOKIE['adm'])) $admin = true;
 			LIMIT $start, 25";
 	$r = mysql_query($sql) or die("MySQL error: " . mysql_error());
 
+	$empty = array();
+	$empty['torrent_id'] = 0;
+	$empty['info_hash'] = "";
+	$empty['seeders'] = 0;
+	$empty['leechers'] = 0;
+	$empty['name'] = "";
+	$empty['comment'] = "";
+	$empty['city'] = "";
+	$empty['isp'] = "";
+	$empty['size'] = "";
+	$empty['reg_time'] = "";
+	$empty['last_check'] = time();
+	
 	while($tor = mysql_fetch_assoc($r))
 	{
+		$tor = array_merge($empty, $tor);
 		$torrent_id = $tor['torrent_id'];
 		$info_hash  = $tor['info_hash'];
 
@@ -394,7 +408,11 @@ if(isset($_COOKIE['adm'])) $admin = true;
 		$is_url = is_url($comment);
 
 		$path = @parse_url($comment);
-		$host = $path['scheme'] .'://'. $path['host'];
+		if(isset($path['scheme']) && $path['host']) {
+			$host = $path['scheme'] .'://'. $path['host'];
+		} else {
+			$host = "http://re-tracker.ru";
+		}
 
 		$isp = $tor['city'] . '+' . $tor['isp'];
 
@@ -448,6 +466,7 @@ if(isset($_COOKIE['adm'])) $admin = true;
 </tr>
 <?
 }
+	}
 ?>
 <tfoot>
 <tr>
