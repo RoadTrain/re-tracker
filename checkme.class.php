@@ -1,7 +1,5 @@
 <?php
 
-require_once './cache.class.php';
-
 class CheckMe
 {
 
