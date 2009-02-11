@@ -1,0 +1,32 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Too many search attempts.</title>
+</head>
+<body>
+<div id="time"></div>
+<script type="text/javascript" charset="UTF-8">
+            var counter = "<?=(isset($seconds)?$seconds:0);?>";
+            var run = false;
+            function TimeOutGo() {
+                if(!run && !counter) {
+                	document.location.href = "http://re-tracker.ru/";
+                	return false;
+                } 
+                run = true;
+                counter--;
+                if (counter<0) {
+                    document.location.reload();
+                }
+                else {
+                    setTimeout("TimeOutGo()",1000);
+                    document.getElementById('timeout').innerHTML = counter;
+                }
+            }    
+            
+            document.getElementById('time').innerHTML = 'Too many search attempts. Auto continue at <span id="timeout">'+counter+'</span> sec';
+            setTimeout("TimeOutGo()",1000);
+      </script>
+</body>
+</html>

@@ -28,11 +28,17 @@ if (isset($_GET['isp_list']) AND $city = intval($_GET['isp_list']))
 ob_start();
 session_start(); // Start a session for store the options
 
-if(isset($_SESSION['last_search'] ) && $_SESSION['last_search'] > (TIMENOW - $search_intrv))
+if(isset($_SESSION['last_search']) && $_SESSION['last_search'] > (TIMENOW - $search_intrv))
 {
-	die('Too many search attempts. Wait '. (($search_intrv + $_SESSION['last_search']) - TIMENOW) .' seconds');
+	$seconds = ($search_intrv + $_SESSION['last_search']) - TIMENOW;
+	include_once 'message.htm';
+//	die('Too many search attempts. Wait '. (($search_intrv + $_SESSION['last_search']) - TIMENOW) .' seconds');
+	die();
 }
-$_SESSION['last_search'] = TIMENOW;
+if(isset($_REQUEST['submit']))
+{
+	$_SESSION['last_search'] = TIMENOW;
+}
 
 $http_query = $_GET;
 unset($http_query['start']);
@@ -364,7 +370,7 @@ if(isset($_COOKIE['adm'])) $admin = true;
 		unset($c);
 		$_SESSION[$query_id] = $count;
 	}
-	
+
 	if(isset($_REQUEST['submit'])) {
 
 	$sql = "SELECT DISTINCT ts.torrent_id, ts.info_hash, ts.seeders, ts.leechers, ts.reg_time,
@@ -390,7 +396,7 @@ if(isset($_COOKIE['adm'])) $admin = true;
 	$empty['size'] = "";
 	$empty['reg_time'] = "";
 	$empty['last_check'] = time();
-	
+
 	while($tor = mysql_fetch_assoc($r))
 	{
 		$tor = array_merge($empty, $tor);
