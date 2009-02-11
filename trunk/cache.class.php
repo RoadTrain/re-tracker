@@ -2,88 +2,76 @@
 
 class cache_common
 {
-
 	public $used = false;
 
 	/**
 	 * Returns value of variable
 	 */
-	public function get($name)
+	public function get ($name)
 	{
-
 		return false;
 	}
 
 	/**
 	 * Store value of variable
 	 */
-	public function set($name, $value, $ttl = 86400)
+	public function set ($name, $value, $ttl = 86400)
 	{
-
 		return false;
 	}
 
 	/**
 	 * Remove variable
 	 */
-	public function rm($name)
+	public function rm ($name)
 	{
-
 		return false;
 	}
 
 	/**
 	 * Garbage collector
 	 */
-	public function gc()
+	public function gc ()
 	{
-
 		return false;
 	}
 }
 
 class cache_apc extends cache_common
 {
-
 	public $used = true;
 
 	public function __construct()
 	{
-
 		if (!$this->is_installed())
 		{
 			die('Error: APC extension not installed');
 		}
 	}
 
-	public function get($name)
+	public function get ($name)
 	{
-
 		return apc_fetch($name);
 	}
 
-	public function set($name, $value, $ttl = 0)
+	public function set ($name, $value, $ttl = 0)
 	{
-
 		return apc_store($name, $value, $ttl);
 	}
 
-	public function rm($name)
+	public function rm ($name)
 	{
-
 		return apc_delete($name);
 	}
 
 	protected function is_installed()
 	{
-
 		return function_exists('apc_fetch');
 	}
 }
 
 class cache_memcached extends cache_common
 {
-
 	public $used = true;
 
 	protected $cfg = null;
@@ -92,9 +80,8 @@ class cache_memcached extends cache_common
 
 	protected $connected = false;
 
-	public function __construct($cfg)
+	public function __construct ($cfg)
 	{
-
 		if (!$this->is_installed())
 		{
 			die('Error: Memcached extension not installed');
@@ -104,9 +91,8 @@ class cache_memcached extends cache_common
 		$this->memcache = new Memcache();
 	}
 
-	protected function connect()
+	protected function connect ()
 	{
-
 		$connect_type = ($this->cfg['pconnect']) ? 'pconnect' : 'connect';
 		
 		if (@$this->memcache->$connect_type($this->cfg['host'], $this->cfg['port']))
@@ -125,9 +111,8 @@ class cache_memcached extends cache_common
 		}
 	}
 
-	public function get($name)
+	public function get ($name)
 	{
-
 		if (!$this->connected)
 		{
 			$this->connect();
@@ -135,9 +120,8 @@ class cache_memcached extends cache_common
 		return ($this->connected) ? $this->memcache->get($name) : false;
 	}
 
-	public function set($name, $value, $ttl = 86400)
+	public function set ($name, $value, $ttl = 86400)
 	{
-
 		if (!$this->connected)
 		{
 			$this->connect();
@@ -146,9 +130,8 @@ class cache_memcached extends cache_common
 		return ($this->connected) ? $this->memcache->set($name, $value, false, $ttl) : false;
 	}
 
-	public function rm($name)
+	public function rm ($name)
 	{
-
 		if (!$this->connected)
 		{
 			$this->connect();
@@ -158,7 +141,6 @@ class cache_memcached extends cache_common
 
 	protected function is_installed()
 	{
-
 		return class_exists('Memcache');
 	}
 
@@ -166,23 +148,20 @@ class cache_memcached extends cache_common
 
 class cache_sqlite extends cache_common
 {
-
 	public $used = true;
 
 	protected $cfg = array();
 
 	protected $db = null;
 
-	public function __construct($cfg)
+	public function __construct ($cfg)
 	{
-
 		$this->cfg = array_merge($this->cfg, $cfg);
 		$this->db = new sqlite_common($cfg);
 	}
 
-	public function get($name)
+	public function get ($name)
 	{
-
 		$result = $this->db->query("
 			SELECT cache_value
 			FROM " . $this->cfg['table_name'] . "
@@ -194,9 +173,8 @@ class cache_sqlite extends cache_common
 		return ($result and $cache_value = sqlite_fetch_single($result)) ? unserialize($cache_value) : false;
 	}
 
-	public function set($name, $value, $ttl = 86400)
+	public function set ($name, $value, $ttl = 86400)
 	{
-
 		$name = sqlite_escape_string($name);
 		$expire = TIMENOW + $ttl;
 		$value = sqlite_escape_string(serialize($value));
@@ -211,9 +189,8 @@ class cache_sqlite extends cache_common
 		return (bool)$result;
 	}
 
-	public function rm($name)
+	public function rm ($name)
 	{
-
 		$result = $this->db->query("
 			DELETE FROM " . $this->cfg['table_name'] . "
 			WHERE cache_name = '" . sqlite_escape_string($name) . "'
@@ -222,9 +199,8 @@ class cache_sqlite extends cache_common
 		return (bool)$result;
 	}
 
-	public function gc($expire_time = TIMENOW)
+	public function gc ($expire_time = TIMENOW)
 	{
-
 		$result = $this->db->query("
 			DELETE FROM " . $this->cfg['table_name'] . "
 			WHERE cache_expire_time < $expire_time
@@ -236,20 +212,17 @@ class cache_sqlite extends cache_common
 
 class cache_file extends cache_common
 {
-
 	public $used = true;
 
 	protected $dir = null;
 
-	public function __construct($dir)
+	public function __construct ($dir)
 	{
-
 		$this->dir = $dir;
 	}
 
-	public function get($name)
+	public function get ($name)
 	{
-
 		$filename = $this->dir . $name . '.php';
 		
 		if (file_exists($filename))
@@ -260,9 +233,8 @@ class cache_file extends cache_common
 		return (!empty($filecache['value'])) ? $filecache['value'] : false;
 	}
 
-	public function set($name, $value, $ttl = 86400)
+	public function set ($name, $value, $ttl = 86400)
 	{
-
 		if (!function_exists('var_export'))
 		{
 			return false;
@@ -279,9 +251,8 @@ class cache_file extends cache_common
 		return (bool)file_write($filecache, $filename, false, true, true);
 	}
 
-	public function rm($name)
+	public function rm ($name)
 	{
-
 		$filename = $this->dir . $name . '.php';
 		if (file_exists($filename))
 		{
@@ -290,9 +261,8 @@ class cache_file extends cache_common
 		return false;
 	}
 
-	public function gc($expire_time = TIMENOW)
+	public function gc ($expire_time = TIMENOW)
 	{
-
 		$dir = $this->dir;
 		
 		if (is_dir($dir))
@@ -315,8 +285,7 @@ class cache_file extends cache_common
 				}
 				closedir($dh);
 			}
-		}
-		
+		}		
 		return;
 	}
 }
@@ -324,7 +293,6 @@ class cache_file extends cache_common
 // Sqlite class for cache
 class sqlite_common
 {
-
 	protected $cfg = array('db_file_path'=>'sqlite.db', 'table_name'=>'table_name', 'table_schema'=>'CREATE TABLE table_name (...)', 'pconnect'=>true, 'con_required'=>true, 'log_name'=>'SQLite');
 
 	protected $dbh = null;
@@ -351,9 +319,8 @@ class sqlite_common
 
 	protected $table_create_attempts = 0;
 
-	function __construct($cfg)
+	function __construct ($cfg)
 	{
-
 		if (!function_exists('sqlite_open'))
 		{
 			die('Error: Sqlite extension not installed');
@@ -364,7 +331,6 @@ class sqlite_common
 
 	protected function connect()
 	{
-
 		$this->cur_query = 'connect';
 		$this->debug('start');
 		
@@ -390,7 +356,6 @@ class sqlite_common
 
 	public function create_table()
 	{
-
 		$this->table_create_attempts++;
 		$result = sqlite_query($this->dbh, $this->cfg['table_schema']);
 		$msg = ($result) ? "{$this->cfg['table_name']} table created" : $this->get_error_msg();
@@ -398,9 +363,8 @@ class sqlite_common
 		return $result;
 	}
 
-	public function query($query, $type = 'unbuffered')
+	public function query ($query, $type = 'unbuffered')
 	{
-
 		if (!$this->connected)
 		{
 			$this->connect();
@@ -434,44 +398,38 @@ class sqlite_common
 		return $result;
 	}
 
-	public function fetch_row($query, $type = 'unbuffered')
+	public function fetch_row ($query, $type = 'unbuffered')
 	{
-
 		$result = $this->query($query, $type);
 		return is_resource($result) ? sqlite_fetch_array($result, SQLITE_ASSOC) : false;
 	}
 
-	public function fetch_rowset($query, $type = 'unbuffered')
+	public function fetch_rowset ($query, $type = 'unbuffered')
 	{
-
 		$result = $this->query($query, $type);
 		return is_resource($result) ? sqlite_fetch_all($result, SQLITE_ASSOC) : array();
 	}
 
-	public function escape($str)
+	public function escape ($str)
 	{
-
 		return sqlite_escape_string($str);
 	}
 
 	public function get_error_msg()
 	{
-
 		return 'SQLite error #' . ($err_code = sqlite_last_error($this->dbh)) . ': ' . sqlite_error_string($err_code);
 	}
 
-	public function trigger_error($msg = 'DB Error')
+	public function trigger_error ($msg = 'DB Error')
 	{
-
 		if (error_reporting())
 		{
 			trigger_error($msg, E_USER_ERROR);
 		}
 	}
 
-	public function debug($mode)
+	public function debug ($mode)
 	{
-
 		if (!$this->dbg_enabled)
 			return;
 		
@@ -497,9 +455,8 @@ class sqlite_common
 		}
 	}
 
-	public function debug_find_source($mode = '')
+	public function debug_find_source ($mode = '')
 	{
-
 		foreach (debug_backtrace() as $trace)
 		{
 			if ($trace['file'] !== __FILE__)
