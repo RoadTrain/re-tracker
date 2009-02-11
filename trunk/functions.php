@@ -190,6 +190,11 @@ function get_trackers()
 {
 	global $cache, $cfg;
 	
+	if ($trackers = $cache->get('trackers'))
+	{
+		return $trackers;
+	}
+	
 	$file = @file_get_contents(TRACKERS_URL);
 	$file = iconv("UTF-16", "CP1251", $file);
 	
