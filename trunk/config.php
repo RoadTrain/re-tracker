@@ -45,7 +45,7 @@ $cfg['cache']['sqlite'] = array('db_file_path'=>'/path/to/sqlite.cache.db', #  /
 $cfg['cache']['filecache']['path'] = './cache_tr/';
 
 define("INDEX_RUN", TRUE); // check INDEX_RUN in config.local.php to prevent errors
-if (!@include_once 'config.local.php')
+if (!@include_once dirname(realpath(__FILE__)).'/config.local.php')
 {
 	die("config.local.php not found");
 }
