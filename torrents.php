@@ -19,10 +19,7 @@ if (get_magic_quotes_gpc())
 	array_deep($_REQUEST, 'stripslashes');
 }
 
-if (!$trackers = $cache->get('trackers'))
-{
-	//$trackers = get_trackers();
-}
+$trackers = get_trackers();
 
 if (isset($_GET['isp_list']) AND $city = intval($_GET['isp_list']))
 {
@@ -51,10 +48,10 @@ unset($http_query);
 <head>
 <meta http-equiv="content-type" content="text/html; charset=windows-1251" />
 
-<link rel="stylesheet" href="/main.css?" type="text/css">
+<link rel="stylesheet" href="./main.css?" type="text/css">
 
-<script type="text/javascript" src="/jquery.pack.js?v=1"></script>
-<script type="text/javascript" src="/main.js?v=1"></script>
+<script type="text/javascript" src="./jquery.pack.js?v=1"></script>
+<script type="text/javascript" src="./main.js?v=1"></script>
 
 <style type="text/css">
 #tor-tbl s { display: none; }
@@ -359,7 +356,7 @@ if(isset($_COOKIE['adm'])) $admin = true;
 </tr>
 </thead>
 <?
-	$count = isset($_SESSION[$query_id])?intval($_SESSION[$query_id]):0;
+	$count = isset($_SESSION[$query_id]) ? intval($_SESSION[$query_id]) : 0;
 
 	if (!$count)
 	{

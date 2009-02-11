@@ -3,10 +3,7 @@
 require ('./common.php');
 require ('./functions.php');
 
-if (!$trackers = $cache->get('trackers'))
-{
-	$trackers = get_trackers();
-}
+$trackers = get_trackers();
 	
 if (isset($_GET['tr_list']))
 {
