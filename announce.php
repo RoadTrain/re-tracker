@@ -149,20 +149,36 @@ if ($event === 'stopped')
 	die();
 }
 
-$isp = explode(' ', $isp);
-
 // Escape strings
-/*
 $name = mysql_real_escape_string($name);
-$main_tracker = mysql_real_escape_string($main_tracker);
 $comment = mysql_real_escape_string($comment);
-*/
+
+$torrent_id = 0;
+
+$r = mysql_query("
+			SELECT torrent_id FROM $tracker_stats WHERE info_hash = '$info_hash_hex' LIMIT 1
+	") or msg_die("MySQL error: k" . mysql_error());
+$c = @mysql_fetch_assoc($r);
+$torrent_id = (int) $c['torrent_id'];
+
+if (!$torrent_id)
+{
+	mysql_query("INSERT INTO $tracker_stats 
+				(info_hash, reg_time, update_time, name, size, comment)
+				VALUES 
+				('$info_hash_hex', '". TIMENOW ."', '". TIMENOW ."', '$name', '$size', '$comment')
+				") or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);	
+	
+	$torrent_id = mysql_insert_id();
+}
+
+$isp = explode(' ', $isp);
 	
 $ipv6type = verify_ip($ipv6);
 if ($ipv6type !== 'ipv6') $ipv6 = null;
 
 $sql_data = array(
-	'info_hash'    => $info_hash_hex,
+	'torrent_id'   => $torrent_id,
 	'peer_hash'    => $peer_hash,
 	'ip'           => ($iptype == 'ipv4') ? $ip : $ipv4,
 	'ipv6'         => ($iptype == 'ipv6') ? $ip : $ipv6,
@@ -209,14 +225,16 @@ $lp_info_cached = $cache->set(PEER_HASH_PREFIX . $peer_hash, $lp_info, PEER_HASH
 unset($sql_data, $columns, $values, $dupdate, $columns_sql, $values_sql, $dupdate_sql);
 
 // Select peers
-$output = $cache->get(PEERS_LIST_PREFIX . $info_hash_hex);
+$output = $cache->get(PEERS_LIST_PREFIX . $torrent_id);
 
 if (!$output)
 {
 	$limit = (int) (($numwant > $cfg['peers_limit']) ? $cfg['peers_limit'] : $numwant);
 	
 	$result = mysql_query("SELECT ip, ipv6, port, seeder
-						   FROM $tracker WHERE info_hash = '$info_hash_hex' LIMIT 200") 
+						   FROM $tracker 
+						   WHERE torrent_id = '$torrent_id' 
+						   LIMIT 200") 
 	or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);
 	
 	$peerset  = array();
@@ -245,17 +263,14 @@ if (!$output)
 	}
 	$leechers = $peers - $seeders;
 	
-	mysql_query("INSERT INTO $tracker_stats 
-				(info_hash, seeders, leechers, reg_time, update_time, name, size, comment)
-				VALUES 
-				('$info_hash_hex', $seeders, $leechers, '". TIMENOW ."', '". TIMENOW ."', '$name', '$size', '$comment')
-				ON DUPLICATE KEY UPDATE
+	mysql_query("UPDATE $tracker_stats SET
 					seeders     = $seeders,
 					leechers    = $leechers,
 					update_time = '". TIMENOW ."',
 					name        = IF(name = '', '$name', name),
 					size        = IF(size = '', '$size', size),
 					comment     = IF(comment = '', '$comment', comment)
+				 WHERE torrent_id = $torrent_id
 				") or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);		
 
 
@@ -268,7 +283,7 @@ if (!$output)
 		'incomplete'   => (int) $leechers,
 	);
 	
-	$peers_list_cached = $cache->set(PEERS_LIST_PREFIX . $info_hash_hex, $output, PEERS_LIST_EXPIRE);
+	$peers_list_cached = $cache->set(PEERS_LIST_PREFIX . $torrent_id, $output, PEERS_LIST_EXPIRE);
 }
 
 // Generate output

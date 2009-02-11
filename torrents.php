@@ -1,7 +1,11 @@
 <?php
-	
+
+//ini_set("display_errors","On");
+
 require ('./common.php');
 require ('./functions.php');
+
+//die(print_r(get_trackers()));
 
 db_init();
 
@@ -17,7 +21,7 @@ if (get_magic_quotes_gpc())
 
 if (!$trackers = $cache->get('trackers'))
 {
-	$trackers = get_trackers();
+	//$trackers = get_trackers();
 }
 
 if (isset($_GET['isp_list']) AND $city = intval($_GET['isp_list']))
@@ -41,17 +45,16 @@ unset($http_query['start']);
 $http_query = array_merge(array_keys($http_query), array_values($http_query));
 $query_id = md5(join('&', $http_query));
 unset($http_query);
-
 ?>
 <html>
 
 <head>
 <meta http-equiv="content-type" content="text/html; charset=windows-1251" />
 
-<link rel="stylesheet" href="./main.css?" type="text/css">
+<link rel="stylesheet" href="/main.css?" type="text/css">
 
-<script type="text/javascript" src="./jquery.pack.js?v=1"></script>
-<script type="text/javascript" src="./main.js?v=1"></script>
+<script type="text/javascript" src="/jquery.pack.js?v=1"></script>
+<script type="text/javascript" src="/main.js?v=1"></script>
 
 <style type="text/css">
 #tor-tbl s { display: none; }
@@ -59,7 +62,7 @@ unset($http_query);
 .tr_tm { margin-top: 2px; font-size: 10px; color: #676767; }
 .ch { font-style: italic; color: #0080FF; }
 </style>
-	
+
 <script type="text/javascript">
 function initSpoilers(context)
 {
@@ -100,7 +103,7 @@ $(document).ready(function(){
 	$('#tor-tbl').tablesorter(); //	{debug: true}
 });
 </script>
-	
+
 <title>Re-Tracker.ru :: Torrent List</title>
 
 </head>
@@ -119,7 +122,7 @@ $(document).ready(function(){
 
 <?
 echo "<h4>Статистика</h4>";
-	
+
 $stats = $cache->get('stats');
 
 if(!$stats)
@@ -127,7 +130,7 @@ if(!$stats)
 	$result = mysql_query("SELECT COUNT(peer_hash) FROM $tracker") or die("MySQL error: " . mysql_error());
 	$row = mysql_fetch_row($result);
 	$peers_num = $row[0];
-	
+
 	$result = mysql_query("SELECT COUNT(DISTINCT ip) FROM $tracker") or die("MySQL error: " . mysql_error());
 	$row = mysql_fetch_row($result);
 	$ip_num = $row[0];
@@ -135,7 +138,7 @@ if(!$stats)
 	$result = mysql_query("SELECT COUNT(info_hash) FROM $tracker_stats") or die("MySQL error: " . mysql_error());
 	$row = mysql_fetch_row($result);
 	$torrents_num = $row[0];
-	
+
 	$stats = array(
 		'peers_num'    => $peers_num,
 		'ip_num'       => $ip_num,
@@ -170,8 +173,8 @@ $GPC = array(
 foreach ($GPC as $name => $params)
 {
 	$$name = isset(${$req_type}[$params[0]]) ? 	${$req_type}[$params[0]] : $params[1];
-	setcookie($params[0], $$name, TIMENOW + $search_opt_keep);
-	
+	$$name ? setcookie($params[0], $$name, TIMENOW + $search_opt_keep) : null;
+
 	switch($params[2])
 	{
 		case 'int':    $$name = intval($$name); break;
@@ -208,12 +211,13 @@ $from = "$tracker_stats ts";
 $join_tr = false;
 
 $iptype = verify_ip($_SERVER['REMOTE_ADDR']);
-$ip = mysql_real_escape_string($_SERVER['REMOTE_ADDR']);
+$ip = mysql_escape_string($_SERVER['REMOTE_ADDR']);
 
-if($my) { 
-	($iptype == 'ipv4') ? $where[] = "tr.ip   ='$ip'" : null;
-	($iptype == 'ipv6') ? $where[] = "tr.ipv6 ='$ip'" : null; 
-	$join_tr = true; 
+if($my) 
+{
+	($iptype == 'ipv4') ? $where[] = "tr.ip   = '$ip'" : null;
+	($iptype == 'ipv6') ? $where[] = "tr.ipv6 = '$ip'" : null;
+	$join_tr = true;
 }
 if($seed_exist)  { $where[] = "ts.seeders <> 0"; }
 if($active)      { $where[] = "(ts.seeders <> 0 OR ts.leechers <> 0)"; }
@@ -224,10 +228,10 @@ if($title_match) { $where[] = "ts.name LIKE '%$title_match%'"; }
 if($city) { $where[] = "tr.city = $city"; $join_tr = true; }
 if($isp)  { $where[] = "tr.isp = $isp"; $join_tr = true; }
 
-if ($join_tr) 
+if ($join_tr)
 {
 	$from .= ", $tracker tr";
-	$where[] = 'tr.info_hash = ts.info_hash';
+	$where[] = 'tr.torrent_id = ts.torrent_id';
 }
 
 $where_sql = !empty($where) ? 'WHERE '. implode(' AND ', $where) : '';
@@ -355,78 +359,78 @@ if(isset($_COOKIE['adm'])) $admin = true;
 </tr>
 </thead>
 <?
+	$count = isset($_SESSION[$query_id])?intval($_SESSION[$query_id]):0;
 
-	if (!($count = $_SESSION[$query_id]))
+	if (!$count)
 	{
-		$c = mysql_fetch_assoc(mysql_query("
-					SELECT COUNT(*) AS count FROM $from $where_sql LIMIT 1
-			"));
+		$sql = "SELECT COUNT(*) AS count FROM $from $where_sql LIMIT 1";
+		$c = mysql_fetch_assoc(mysql_query($sql));
 		$count = (int) $c['count'];
 		unset($c);
 		$_SESSION[$query_id] = $count;
 	}
-	
-	$r = mysql_query("
-			SELECT DISTINCT ts.info_hash, ts.seeders, ts.leechers, ts.reg_time,
+
+	$sql = "SELECT DISTINCT ts.torrent_id, ts.info_hash, ts.seeders, ts.leechers, ts.reg_time,
 				ts.name,
 				ts.size,
 				ts.comment,
 				ts.last_check
 			FROM $from
-			$where_sql 
-			ORDER BY $order_sql $sort_sql 
-			LIMIT $start, 25") or die("MySQL error: " . mysql_error());
-		
+			$where_sql
+			ORDER BY $order_sql $sort_sql
+			LIMIT $start, 25";
+	$r = mysql_query($sql) or die("MySQL error: " . mysql_error());
+
 	while($tor = mysql_fetch_assoc($r))
 	{
-		
-		$info_hash = $tor['info_hash'];
-	
+		$torrent_id = $tor['torrent_id'];
+		$info_hash  = $tor['info_hash'];
+
 		$seeders  = !empty($tor['seeders'])  ? $tor['seeders'] : '0';
 		$leechers = !empty($tor['leechers']) ? $tor['leechers'] : '0';
-	
+
 		$name = $tor['name'];
-		
+
 		$size = !empty($tor['size']) ? humn_size($tor['size']) : ' - ' ;
-		
+
 		$comment = trim($tor['comment']);
 		$is_url = is_url($comment);
-		
+
 		$path = @parse_url($comment);
 		$host = $path['scheme'] .'://'. $path['host'];
-		
+
 		$isp = $tor['city'] . '+' . $tor['isp'];
-	
+
 		$tr = rawurlencode("http://re-tracker.ru/announce.php?name=$name&size={$tor['size']}&comment=$comment&isp=$isp");
-		$magnet = create_magnet($name, $tor['size'], strtoupper(base32_encode(hex2bin($info_hash))), $tr);
-	
+		$magnet = $admin ? create_magnet($name, $tor['size'], strtoupper(base32_encode(hex2bin($info_hash))), $tr) : false;
+
 		$added_time = create_date('H:i', $tor['reg_time']);
 		$added_date = create_date('j-M-y', $tor['reg_time']);
-		
+
 		$tor_url = ($is_url) ? $comment : (!empty($name) ? "http://google.com/search?q=".urlencode($name) : '');
-		
+
 		$allow_check = (($tor['last_check'] + $min_check_intrv) < TIMENOW);
-?>		
-<tr class="tCenter" id="tor_<?=$info_hash;?>">
+?>
+<tr class="tCenter" id="tor_<?=$torrent_id;?>">
 	<td class="row1">
 		<a class="gen" href="http://google.com/search?q=<?=$info_hash;?>"><?=$info_hash;?></a></td>
 	<td class="row4 med tLeft">
-		<?=($is_url) ? 
+		<?=($is_url) ?
 			"<img src=\"{$host}/favicon.ico\" alt=\"pic\" title=\"{$path['host']}\" width='16' height='16'>" : "" ;?>
-			
-		<span id="name_<?=$info_hash;?>">		 
+
+		<span id="name_<?=$torrent_id;?>">
 			<?=($tor_url) ?
 			"<a class=\"genmed\" href=\"$tor_url\">".(!empty($name) ? "<b>$name</b>" : "ссылка") ."</a>"
 			:
 			"<i>не задано</i>";?>
-		<?=($is_url && $allow_check) ? 
-			"<a href=\"#\" 
-				onclick=\"$(this).replaceWith('<im'+'g src=images/updating.gif alt=pic title=Updating>');		
-				$('#name_$info_hash').load('checkname.php?info_hash=$info_hash&return=1'); return false;\">
+		<?=($is_url && $allow_check) ?
+			"<a href=\"#\"
+				onclick=\"$(this).replaceWith('<im'+'g src=images/updating.gif alt=pic title=Updating>');
+				$('#name_$torrent_id').load('checkname.php?torrent_id=$torrent_id&return=1'); return false;\">
 				<img src=\"images/update.gif\" alt=\"pic\" title=\"Update\">
 			 </a>" : "" ;?>
 		</span>
-		<?=(!empty($comment) && (!$is_url)) ? 
+		<?=(!empty($comment) && (!$is_url)) ?
 			"<p><i><u>комментарий:</u></i> ".make_url($comment)." </p>" : "" ; ?>
 	</td>
 	<td class="row4 small nowrap">
@@ -445,7 +449,7 @@ if(isset($_COOKIE['adm'])) $admin = true;
 		<p><?=$added_date;?></p>
 	</td>
 </tr>
-<?	
+<?
 }
 ?>
 <tfoot>
@@ -456,7 +460,8 @@ if(isset($_COOKIE['adm'])) $admin = true;
 </table>
 <?
 $request = @parse_url($_SERVER['REQUEST_URI']);
-parse_str($request['query'], $_args);
+
+parse_str (isset($request['query']) ? $request['query'] : "", $_args);
 $_args_str = '';
 if ($_args)
 {
@@ -474,13 +479,13 @@ $pagination = generate_pagination($pg_url, $count, 50, $start);
 </div>
 </div><!--/main_content_wrap-->
 </td><!--/main_content-->
-</tr></table></div><!--/page_content-->	
+</tr></table></div><!--/page_content-->
 </div><!--/body_container-->
-	
+
 		<div class="copyright tCenter" align="center">
 			Powered by <a href="http://re-tracker.ru/" target="_blank">Re-Tracker.ru</a> &copy; <strong>RoadTrain</strong><br />
 		</div>
-<!-- Гугл аналитик --> 
+<!-- Гугл аналитик -->
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
 document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
@@ -490,7 +495,7 @@ try {
 var pageTracker = _gat._getTracker("UA-5606988-4");
 pageTracker._trackPageview();
 } catch(err) {}</script>
-<!-- / Гугл аналитик --> 
+<!-- / Гугл аналитик -->
 <!--Лайв интернет-->
 <p align="center"><script type="text/javascript"><!--
 document.write("<a href='http://www.liveinternet.ru/click' "+
@@ -501,7 +506,7 @@ screen.colorDepth:screen.pixelDepth))+";u"+escape(document.URL)+
 ";"+Math.random()+
 "' alt='' title='LiveInternet: показано число посетителей за"+
 " сегодня' "+
-"border=0 width=88 height=15><\/a>")//--></script> 
+"border=0 width=88 height=15><\/a>")//--></script>
 <!--/Лайв интернет-->
 <br>
 </body>

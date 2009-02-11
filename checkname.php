@@ -6,13 +6,13 @@ require ('./simple_html_dom.php'); // HTML parser
 	
 db_init();
 
-if (!$info_hash = mysql_real_escape_string(@$_REQUEST['info_hash']))
+if (!$torrent_id = intval(@$_REQUEST['torrent_id']))
 {
 	die('Invalid request');
 }
 
 $r = mysql_query("
-			SELECT comment, last_check FROM $tracker_stats WHERE info_hash = '$info_hash' LIMIT 1
+			SELECT comment, last_check FROM $tracker_stats WHERE torrent_id = $torrent_id LIMIT 1
 	");
 
 if (!$r)
@@ -60,13 +60,14 @@ if (is_url($comment))
 	mysql_query("UPDATE $tracker_stats SET 
 					name       = '$name',
 					last_check = ". TIMENOW ."
-				WHERE info_hash = '$info_hash' 
+				WHERE torrent_id = $torrent_id 
 				LIMIT 1");
 
 	if (isset($_REQUEST['return']))
 	{
 		$name = iconv('CP1251', 'UTF-8', $name);
 		echo "<a class=\"genmed\" href=\"$comment\" target=\"_blank\"><b>$name</b></a>";
+		exit;
 	}
 }
 else die('This is not a URL');
