@@ -7,7 +7,7 @@
 <body>
 <div id="time"></div>
 <script type="text/javascript" charset="UTF-8">
-            var counter = "<?=(isset($seconds)?$seconds:0);?>";
+            var counter = "<?=(isset($seconds) ? $seconds : 0);?>";
             var run = false;
             function TimeOutGo() {
                 if(!run && !counter) {
