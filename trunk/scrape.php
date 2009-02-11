@@ -1,5 +1,6 @@
 <?php
-
+header("HTTP/1.1 404 Not Found");
+die("Page not found");
 require ('./common.php');
 
 $info_hash = isset($_GET['info_hash']) ? $_GET['info_hash'] : '';
