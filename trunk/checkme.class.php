@@ -29,8 +29,8 @@ class CheckMe
 		$this->blacklist[] = "beetorrent.homeip.net";
 		$this->blacklist[] = "download.kanet.ru";
 		$this->blacklist[] = "bt.od.ua";
-		$this->blacklist[] = "free-torrents.org";
-		$this->blacklist[] = "tseed.ru";
+		//$this->blacklist[] = "free-torrents.org";
+		//$this->blacklist[] = "tseed.ru";
 		$this->blacklist[] = "www.nnm-club.org";
 		$this->blacklist[] = "torrent.elcomnet.ru";
 		$this->blacklist[] = "torrent.dml";
@@ -87,6 +87,10 @@ class CheckMe
 			elseif (strpos($comment, 'kinozal.tv'))
 			{
 				$b = $obj->find('b font[color=green]', 1);
+			}
+			elseif (strpos($comment, 'etorrent.ru'))
+			{
+				$b = $obj->find('#det_name', 0);
 			}
 			else
 			{
