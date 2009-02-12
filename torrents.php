@@ -45,7 +45,7 @@ $query_id = md5(join('&', $http_query));
 
 unset($http_query);
 
-if(isset($_SESSION['last_query']) AND ($_SESSION['last_query'] <> $query_id))
+if(isset($_SESSION['last_query']) AND ($_SESSION['last_query'] !== $query_id))
 {
 	$_SESSION['last_search'] = TIMENOW;
 }
@@ -381,9 +381,6 @@ if($city)
 		$_SESSION[$query_id] = $count;
 	}
 
-	//if(isset($_REQUEST['submit'])) 
-	//{
-
 	$sql = "SELECT DISTINCT ts.torrent_id, ts.info_hash, ts.seeders, ts.leechers, ts.reg_time,
 				ts.name,
 				ts.size,
@@ -395,18 +392,18 @@ if($city)
 			LIMIT $start, 25";
 	$r = mysql_query($sql) or die("MySQL error: " . mysql_error());
 
-	$empty = array();
-	$empty['torrent_id'] = 0;
-	$empty['info_hash'] = "";
-	$empty['seeders'] = 0;
-	$empty['leechers'] = 0;
-	$empty['name'] = "";
-	$empty['comment'] = "";
-	$empty['city'] = "";
-	$empty['isp'] = "";
-	$empty['size'] = "";
-	$empty['reg_time'] = "";
-	$empty['last_check'] = time();
+	$empty = array(
+		'torrent_id' => 0,
+		'seeders'    => 0,
+		'leechers'   => 0,
+		'name'       => "",
+		'comment'    => "",
+		'city'       => "",
+		'isp'        => "",
+		'size'       => "",
+		'reg_time'   => "",
+		'last_check' => time(),
+	);
 
 	while($tor = mysql_fetch_assoc($r))
 	{
@@ -436,8 +433,12 @@ if($city)
 
 		$isp = $tor['city'] . '+' . $tor['isp'];
 
-		$tr = rawurlencode("http://re-tracker.ru/announce.php?name=$name&size={$tor['size']}&comment=$comment&isp=$isp");
-		$magnet = $admin ? create_magnet($name, $tor['size'], strtoupper(base32_encode(hex2bin($info_hash))), $tr) : false;
+		if ($admin)
+		{
+			$tr = rawurlencode("http://re-tracker.ru/announce.php?name=$name&size={$tor['size']}&comment=$comment&isp=$isp");
+			$magnet = create_magnet($name, $tor['size'], strtoupper(base32_encode(hex2bin($info_hash))), $tr);
+		}
+		else $magnet = null;
 
 		$added_time = create_date('H:i', $tor['reg_time']);
 		$added_date = create_date('j-M-y', $tor['reg_time']);
@@ -486,7 +487,6 @@ if($city)
 </tr>
 <?
 }
-	//}
 ?>
 <tfoot>
 <tr>
@@ -519,7 +519,7 @@ $pagination = generate_pagination($pg_url, $count, 50, $start);
 </div><!--/body_container-->
 
 		<div class="copyright tCenter" align="center">
-			Powered by <a href="http://re-tracker.ru/" target="_blank">Re-Tracker.ru</a> &copy; <strong>RoadTrain</strong><br />
+			Powered by <a href="http://re-tracker.ru/" target="_blank">Re-Tracker.ru</a> &copy; <strong>RoadTrain, FreeM@N</strong><br />
 		</div>
 <!-- Гугл аналитик -->
 <script type="text/javascript">
