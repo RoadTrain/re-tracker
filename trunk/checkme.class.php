@@ -106,14 +106,14 @@ class CheckMe
 				$name = "";
 			}
 			
-			if (!$name)
-			{
-				return $return ? 'Could not obtain torrent name from url (tracker is down or not supported)' : FALSE;
-			}
-			
 			if ($update)
 			{
 				$this->updateData($torrent_id, $name);
+			}
+			
+			if (!$name)
+			{
+				return $return ? 'Could not obtain torrent name from url (tracker is down or not supported)' : FALSE;
 			}
 			
 			if ($return)
@@ -153,13 +153,13 @@ class CheckMe
 		$count = 0;
 		while ($res = mysql_fetch_assoc($req))
 		{
-			//			echo $res['comment'];
+//			echo $res['torrent_id'] . "|" . $res['comment'];
 			if ($this->updateName($res['torrent_id'], TRUE, FALSE))
 			{
-				//				echo " - IT";
+//				echo " - IT";
 				$count++;
 			}
-			//			echo "<br>";
+//			echo "<br>";
 		}
 		return $count;
 	}

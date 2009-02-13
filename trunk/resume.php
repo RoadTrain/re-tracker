@@ -1,7 +1,8 @@
 <?php
-	
-require ('./common.php');
-require ('./functions.php');
+
+include_once (dirname(realpath(__FILE__)).'/common.php');
+include_once (dirname(realpath(__FILE__)).'/functions.php');
+unset($dir);
 
 $trackers = get_trackers();
 	
@@ -26,7 +27,7 @@ if (isset($_REQUEST['submit']) && !empty($_FILES['resume']))
 	if (!($_SESSION['resume'] = bdecode_file($_FILES['resume']['tmp_name']))) die("Invalid resume.dat file");
 }
 
-if (empty($_SESSION['resume']) || !isset($_REQUEST['act'])) 
+if (empty($_SESSION['resume']) || !isset($_REQUEST['act']))
 {
 ?>
 <html>
@@ -53,7 +54,7 @@ if (empty($_SESSION['resume']) || !isset($_REQUEST['act']))
 
 <!--main_content-->
 <td id="main_content">
-<div id="main_content_wrap">	
+<div id="main_content_wrap">
 
 <form method="POST" name="post" action="?<?=SID;?>&act=1" enctype="multipart/form-data">
 <table class="bordered w100" cellspacing="0">
@@ -71,14 +72,13 @@ if (empty($_SESSION['resume']) || !isset($_REQUEST['act']))
 					<option value="0">&raquo; Выберите город</option>
 					<?=city_select($trackers['Город'], $city);?>
 				</select>
-				<select name="isp" id="isp" 
+				<select name="isp" id="isp"
 				onchange="$('#tr').load('resume.php?tr_list=1&city='+$('#city').val()+'&isp='+$('#isp').val());">
 					<option value="0">&raquo; Выберите провайдера</option>
 				</select>
 			</p>
 			<p>
-				<textarea class="mrg_4" name="tr" id="tr" rows="18" cols="92" style="width: 25%;"
-				><?=(isset($_COOKIE['tr_list']) ? $_COOKIE['tr_list'] : '');?></textarea>
+				<textarea class="mrg_4" name="tr" id="tr" rows="18" cols="92" style="width: 25%;"><?=(isset($_COOKIE['tr_list']) ? $_COOKIE['tr_list'] : '');?></textarea>
 			</p>
 			<p>
 				<label>
@@ -92,7 +92,7 @@ if (empty($_SESSION['resume']) || !isset($_REQUEST['act']))
 
 </div><!--/main_content_wrap-->
 </td><!--/main_content-->
-</tr></table></div><!--/page_content-->	
+</tr></table></div><!--/page_content-->
 </div><!--/body_container-->
 
 </body>
@@ -137,7 +137,7 @@ else
 					$query['size']    = $q['size'];
 					$query['comment'] = $q['comment'];
 					unset($tr);
-				}				
+				}
 			}
 			$trackers[] = "http://re-tracker.ru/announce.php?". http_build_query($query);
 			$trackers = array_merge($trackers, $tr_list);

@@ -1,9 +1,9 @@
 <?php
 
-//ini_set("display_errors","On");
+ini_set("display_errors","On");
 
-require ('./common.php');
-require ('./functions.php');
+include_once (dirname(realpath(__FILE__)).'/common.php');
+include_once (dirname(realpath(__FILE__)).'/functions.php');
 
 db_init();
 
@@ -91,7 +91,7 @@ function getElText (e)
 	}
 	return t;
 }
-function escHTML (txt) 
+function escHTML (txt)
 {
 	return txt.replace(/</g, '&lt;');
 }
@@ -422,11 +422,11 @@ if($city)
 		$is_url = is_url($comment);
 
 		$path = @parse_url($comment);
-		if(isset($path['scheme']) && $path['host']) 
+		if(isset($path['scheme']) && $path['host'])
 		{
 			$host = $path['scheme'] .'://'. $path['host'];
-		} 
-		else 
+		}
+		else
 		{
 			$host = "http://re-tracker.ru";
 		}

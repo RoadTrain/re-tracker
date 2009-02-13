@@ -1,6 +1,6 @@
 <?php
 
-require ('./common.php');
+include_once (dirname(realpath(__FILE__)).'/common.php');
 
 $announce_interval = $cfg['announce_interval'];
 
@@ -163,11 +163,11 @@ $torrent_id = (int) $c['torrent_id'];
 
 if (!$torrent_id)
 {
-	mysql_query("INSERT INTO $tracker_stats 
+	mysql_query("INSERT INTO $tracker_stats
 				(info_hash, reg_time, update_time, name, size, comment)
-				VALUES 
+				VALUES
 				('$info_hash_hex', '". TIMENOW ."', '". TIMENOW ."', '$name', '$size', '$comment')
-				") or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);	
+				") or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);
 	
 	$torrent_id = mysql_insert_id();
 }
@@ -232,9 +232,9 @@ if (!$output)
 	$limit = (int) (($numwant > $cfg['peers_limit']) ? $cfg['peers_limit'] : $numwant);
 	
 	$result = mysql_query("SELECT ip, ipv6, port, seeder
-						   FROM $tracker 
-						   WHERE torrent_id = '$torrent_id' 
-						   LIMIT 200") 
+						   FROM $tracker
+						   WHERE torrent_id = '$torrent_id'
+						   LIMIT 200")
 	or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);
 	
 	$peerset  = array();
@@ -249,7 +249,7 @@ if (!$output)
 		{
 			$seeders++;
 		}
-		unset($row['seeder']);		
+		unset($row['seeder']);
 		
 		if(!empty($row['ipv6']))
 		{
@@ -271,7 +271,7 @@ if (!$output)
 					size        = IF(size = '', '$size', size),
 					comment     = IF(comment = '', '$comment', comment)
 				 WHERE torrent_id = $torrent_id
-				") or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);		
+				") or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);
 
 
 	$output = array(

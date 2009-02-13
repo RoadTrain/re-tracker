@@ -1,7 +1,8 @@
 <?php
 header("HTTP/1.1 404 Not Found");
 die("Page not found");
-require ('./common.php');
+
+include_once (dirname(realpath(__FILE__)).'/common.php');
 
 $info_hash = isset($_GET['info_hash']) ? $_GET['info_hash'] : '';
 $info_hash_hex = bin2hex($info_hash);

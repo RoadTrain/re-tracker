@@ -5,11 +5,10 @@ if (!defined("CRON"))
 	die();
 }
 
-require ('./common.php');
-require ('./functions.php');
-require ('./simple_html_dom.php'); // HTML parser
-require ('./checkme.class.php'); // HTML parser
-ini_set("display_errors", "On");
+include_once (dirname(realpath(__FILE__)).'/common.php');
+include_once (dirname(realpath(__FILE__)).'/functions.php');
+include_once (dirname(realpath(__FILE__)).'/simple_html_dom.php'); // HTML parser
+include_once (dirname(realpath(__FILE__)).'/checkme.class.php'); // HTML parser
 
 $work = $cache->get("batch_checkname", true, 600);
 if ($work)
