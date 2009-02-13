@@ -1,9 +1,10 @@
 <?php
 
-require ('./common.php');
-require ('./functions.php');
-require ('./simple_html_dom.php'); // HTML parser
-require ('./checkme.class.php'); // HTML parser
+include_once (dirname(realpath(__FILE__)) . '/common.php');
+include_once (dirname(realpath(__FILE__)) . '/functions.php');
+include_once (dirname(realpath(__FILE__)) . '/simple_html_dom.php'); // HTML parser
+include_once (dirname(realpath(__FILE__)) . '/checkme.class.php'); // HTML parser
+
 
 if (!$torrent_id = intval(@$_REQUEST['torrent_id']))
 {
@@ -11,5 +12,5 @@ if (!$torrent_id = intval(@$_REQUEST['torrent_id']))
 }
 
 $check = new CheckMe();
-
+header('Content-Type: text/html; charset=utf-8', true);
 die($check->updateName($torrent_id, TRUE, isset($_REQUEST['return'])));
