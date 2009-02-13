@@ -22,7 +22,7 @@ $cfg['compact_always'] = false; // Enable compact mode always (don't check clien
 $cfg['ignore_reported_ip'] = false; // Ignore IP from GET query
 $cfg['allow_internal_ip'] = true; // Allow IP from local, etc
 $cfg['verify_reported_ip'] = false; // Verify reported IP?
-$cfg['base_path'] = $_SERVER['DOCUMENT_ROOT']; // Without end slash
+$cfg['base_path'] = isset($_SERVER['DOCUMENT_ROOT'])?$_SERVER['DOCUMENT_ROOT']:dirname(realpath(__FILE__)); // Without end slash
 $cfg['TRACKERS_URL'] = 'http://re-tracker.ru/trackerssimple.ini'; // Path to obtain tracker list
 
 
