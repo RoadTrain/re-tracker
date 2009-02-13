@@ -5,7 +5,6 @@ define('TIMENOW', time());
 
 set_magic_quotes_runtime(0); // Disable magic_quotes_runtime
 
-
 include_once (dirname(realpath(__FILE__)) . '/config.php');
 include_once (dirname(realpath(__FILE__)) . '/cache.class.php');
 
@@ -48,7 +47,6 @@ function db_init()
 
 function cleanup()
 {
-
 	global $cache, $cfg, $tracker, $tracker_stats;
 	
 	$cache->gc();
@@ -64,13 +62,11 @@ function cleanup()
 
 function utime()
 {
-
 	return array_sum(explode(' ', microtime()));
 }
 
 function drop_fast_announce($lp_info)
 {
-
 	global $announce_interval;
 	
 	if ($lp_info['update_time'] < (TIMENOW - $announce_interval + 60))
@@ -88,23 +84,27 @@ function drop_fast_announce($lp_info)
 
 function msg_die($msg)
 {
-
-	$output = bencode(array('min interval'=>(int)60, 'failure reason'=>(string)$msg));
+	$output = bencode(array(
+		'min interval'   => (int) 60, 
+		'failure reason' => (string) $msg
+	));
 	
 	die($output);
 }
 
 function dummy_exit($interval = 60)
 {
-
-	$output = bencode(array('interval'=>(int)$interval, 'min interval'=>(int)$interval, 'peers'=>(string)DUMMY_PEER));
+	$output = bencode(array(
+		'interval'     => (int) $interval, 
+		'min interval' => (int) $interval, 
+		'peers'        => (string) DUMMY_PEER
+	));
 	
 	die($output);
 }
 
 function encode_ip($ip)
 {
-
 	$d = explode('.', $ip);
 	
 	return sprintf('%02x%02x%02x%02x', $d[0], $d[1], $d[2], $d[3]);
@@ -112,13 +112,11 @@ function encode_ip($ip)
 
 function decode_ip($ip)
 {
-
 	return long2ip("0x{$ip}");
 }
 
 function verify_ip($ip)
 {
-
 	if (strpos($ip, ':') !== false)
 	{
 		$iptype = 'ipv6';
@@ -136,13 +134,11 @@ function verify_ip($ip)
 
 function str_compact($str)
 {
-
 	return preg_replace('#\s+#', ' ', trim($str));
 }
 
 function dbg_log($str, $file)
 {
-
 	if (!DBG_LOG)
 		return;
 	
@@ -152,7 +148,6 @@ function dbg_log($str, $file)
 
 function file_write($str, $file, $max_size = LOG_MAX_SIZE, $lock = true, $replace_content = false)
 {
-
 	$bytes_written = false;
 	
 	if ($max_size && @filesize($file) >= $max_size)
@@ -198,7 +193,6 @@ function file_write($str, $file, $max_size = LOG_MAX_SIZE, $lock = true, $replac
 
 function bb_mkdir($path, $mode = 0777)
 {
-
 	$old_um = umask(0);
 	$dir = mkdir_rec($path, $mode);
 	umask($old_um);
@@ -207,7 +201,6 @@ function bb_mkdir($path, $mode = 0777)
 
 function mkdir_rec($path, $mode)
 {
-
 	if (is_dir($path))
 	{
 		return ($path !== '.' && $path !== '..') ? is_writable($path) : false;
@@ -220,7 +213,6 @@ function mkdir_rec($path, $mode)
 
 function clean_filename($fname)
 {
-
 	static $s = array('\\', '/', ':', '*', '?', '"', '<', '>', '|');
 	
 	return str_replace($s, '_', $fname);
@@ -228,7 +220,6 @@ function clean_filename($fname)
 
 function array_deep(&$var, $fn, $one_dimensional = false, $array_only = false)
 {
-
 	if (is_array($var))
 	{
 		foreach ($var as $k => $v)
@@ -263,7 +254,6 @@ function array_deep(&$var, $fn, $one_dimensional = false, $array_only = false)
 // based on OpenTracker [http://whitsoftdev.com/opentracker]
 function bencode($var)
 {
-
 	if (is_int($var))
 	{
 		return 'i' . $var . 'e';
