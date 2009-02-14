@@ -336,7 +336,7 @@ if($city)
 							<?=city_select($trackers['Город'], $city);?>
 						</select>
 						<select name="isp" id="isp">
-							<?=isp_select($trackers['Провайдеры '. $trackers['Город'][$city]], $isp);?>
+							<?=isp_select($city ? $trackers['Провайдеры '. $trackers['Город'][$city]] : array(), $isp);?>
 						</select>
 					</p>
 				</div>
