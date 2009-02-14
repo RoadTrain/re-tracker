@@ -147,7 +147,7 @@ function is_url($url)
 	);
 
     if ( !( $parts = @parse_url( $url ) ) ) return false;
-    else 
+    else
 	{
     	$parts = array_merge($empty, $parts);
         if ( !isset($parts['scheme']) || ($parts['scheme'] != "http" && $parts['scheme'] != "https" && $parts['scheme'] != "ftp")) return false;
@@ -177,7 +177,9 @@ function city_select($city_ary, $selected_id = 0)
 function isp_select($isp_ary, $selected_id = 0)
 {
 	$out = '<option value="0">&raquo; Выберите провайдера</option>';
-
+	if(!sizeof($isp_ary)) {
+		return $out;
+	}
 	for ($i=1; $i <= ($isp_ary['Количество']); $i++)
 	{
 		$out .= "<option value=\"$i\"". (($i == $selected_id) ? " selected=\"selected\"" : '') .">".
@@ -556,22 +558,22 @@ function bdecode_r ($str, &$pos)
  *  @return array Структура: array( '/home/site/filename.inc', 222 )
  *  @param integer $step Шаг назад
  */
-function LastFileLine($step= 0) 
+function LastFileLine($step= 0)
 {
     $export= array ('undefined', 0);
-    if (function_exists('debug_backtrace')) 
+    if (function_exists('debug_backtrace'))
 	{
         $bt= debug_backtrace();
-        if (isset ($bt[$step]['file']) && $bt[$step]['line']) 
+        if (isset ($bt[$step]['file']) && $bt[$step]['line'])
 		{
             $export= array ($bt[$step]['file'], $bt[$step]['line']);
         }
-        if(isset($_SERVER['WINDIR'])) 
+        if(isset($_SERVER['WINDIR']))
 		{
             $export[0] = preg_replace('/\\\\/','/',$export[0]);
         }
     }
-    else 
+    else
 	{
         die('[{Версия PHP4 должна быть равна 4.3.1 или выше}]');
     }
@@ -589,13 +591,13 @@ function LastFileLine($step= 0)
  *  @param boolean $tofile Вывести в файл debug
  *  @return void
  */
-function debug($text, $die= true, $tofile= false) 
+function debug($text, $die= true, $tofile= false)
 {
     $text= print_r($text, true);
 
     list ($file, $line)= LastFileLine(1);
 
-    if ($tofile) 
+    if ($tofile)
 	{
         $text= $text."  ".$file.': '.$line."\r\n\r\n";
         $fp= fopen($_SERVER['DOCUMENT_ROOT'].'/debug.inc', 'a+');
@@ -605,7 +607,7 @@ function debug($text, $die= true, $tofile= false)
         if ($die)
         die();
     }
-    else 
+    else
 	{
         $text= '<pre>|'.htmlspecialchars($text).'|</pre><br><b>'.$file.': '.$line.'</b>';
         if ($die)
