@@ -422,7 +422,7 @@ if($city)
 		$is_url = is_url($comment);
 
 		$path = @parse_url($comment);
-		if(isset($path['scheme']) && $path['host'])
+		if(isset($path['scheme']) && isset($path['host']))
 		{
 			$host = $path['scheme'] .'://'. $path['host'];
 		}
