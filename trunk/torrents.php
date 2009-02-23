@@ -153,7 +153,7 @@ $req_type = isset($_GET['o']) ? '_GET' : '_COOKIE';
 $GPC = array(
 #	  var_name                                          key_name    def_value        type      store into COOKIE
 	'start'         => array('start', 0,      'int',  false),
-	'admin'         => array('adm',   0,      'int',   true),
+	//'admin'         => array('adm',   0,      'int',   true),
 	// Options
 	'active'        => array('a',    0,       'int',   true),
 	'my'            => array('my',   0,       'int',   true),
@@ -247,7 +247,9 @@ switch($sort)
 		break;
 }
 
-if(isset($_COOKIE['adm']) AND $_COOKIE['adm']) $admin = true;
+
+$admin = (isset($_REQUEST['adm']) AND $_REQUEST['adm']) ? true : false;
+setcookie('adm', $admin, TIMENOW + $search_opt_keep);
 
 if($city)
 {
