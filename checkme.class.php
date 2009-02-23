@@ -92,6 +92,10 @@ class CheckMe
 			{
 				$b = $obj->find('#det_name', 0);
 			}
+			elseif (strpos($comment, 'netlab.e2k.ru'))
+			{
+				$b = $obj->find('td.cattop', 0);
+			}
 			else
 			{
 				$b = $obj->find('.maintitle', 0);
