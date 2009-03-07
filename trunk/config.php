@@ -71,3 +71,5 @@ define('DBG_LOG', false); // Debug log
 
 // Torrents list
 define('STATS_EXPIRE', 1200);  // sec
+	
+@include_once (dirname(realpath(__FILE__)).'/config.local.php');

@@ -185,12 +185,9 @@ $sql_data = array(
 	'port'         => $port,
 	'seeder'       => $seeder,
 	'update_time'  => TIMENOW,
-	'name'         => $name,
-	'comment'      => $comment,
-	'pleft'        => $left,
+	'remain'       => $left,
 	'downloaded'   => $downloaded,
 	'uploaded'     => $uploaded,
-	'size'         => $size,
 	'city'         => !empty($isp[0]) ? $isp[0] : null,
 	'isp'          => !empty($isp[1]) ? $isp[1] : null,
 );
@@ -201,16 +198,14 @@ foreach ($sql_data as $column => $value)
 {
 	$columns[] = $column;
 	$values[]  = "'" . mysql_real_escape_string($value) . "'";
-	$dupdate[] = $column . " = '" . mysql_real_escape_string($value) . "'";
 }
 
 $columns_sql = implode(', ', $columns);
 $values_sql = implode(', ', $values);
-$dupdate_sql = implode(', ', $dupdate);
 
 // Update peer info
-mysql_query("INSERT INTO tracker ($columns_sql) VALUES ($values_sql)
-			ON DUPLICATE KEY UPDATE $dupdate_sql") or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);
+mysql_query("REPLACE INTO tracker ($columns_sql) VALUES ($values_sql)") 
+  or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);
 
 // Store peer info in cache
 $lp_info = array(
@@ -222,7 +217,7 @@ $lp_info = array(
 
 $lp_info_cached = $cache->set(PEER_HASH_PREFIX . $peer_hash, $lp_info, PEER_HASH_EXPIRE);
 
-unset($sql_data, $columns, $values, $dupdate, $columns_sql, $values_sql, $dupdate_sql);
+unset($sql_data, $columns, $values, $columns_sql, $values_sql);
 
 // Select peers
 $output = $cache->get(PEERS_LIST_PREFIX . $torrent_id);
@@ -234,7 +229,7 @@ if (!$output)
 	$result = mysql_query("SELECT ip, ipv6, port, seeder
 						   FROM $tracker
 						   WHERE torrent_id = '$torrent_id'
-						   LIMIT 200")
+						   LIMIT 300")
 	or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);
 	
 	$peerset  = array();
@@ -254,10 +249,12 @@ if (!$output)
 		if(!empty($row['ipv6']))
 		{
 			$row['ip'] = $row['ipv6'];
+			unset($row['ipv6']);
 			$peerset6[] = $row;
 		}
 		else
 		{
+			unset($row['ipv6']);
 			$peerset[] = $row;
 		}
 	}
