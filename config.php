@@ -8,7 +8,7 @@ $cfg['dbname'] = "re-tracker";
 
 $tracker = 'tracker';
 $tracker_stats = 'tracker_stats';
-$search_intrv  = 7; // interval for search attempts
+$search_intrv  = 10; // interval for search attempts
 $search_opt_keep = 15 * 86400; // seconds to keep search options in cookie
 $min_check_intrv = 14400; // min inverval to check torrent name
 
@@ -53,12 +53,6 @@ $cfg['cache']['sqlite'] = array(
 );
 
 $cfg['cache']['filecache']['path'] = './cache_tr/';
-
-define("INDEX_RUN", TRUE); // check INDEX_RUN in config.local.php to prevent errors
-if (!@include_once dirname(realpath(__FILE__)).'/config.local.php')
-{
-	die("config.local.php not found");
-}
 
 define('DUMMY_PEER', pack('Nn', ip2long('10.254.254.247'), 64765));
 
