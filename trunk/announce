@@ -1,0 +1,3 @@
+<?php
+
+include_once dirname(realpath(__FILE__)).'announce.php';
