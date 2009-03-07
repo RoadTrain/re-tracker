@@ -50,14 +50,13 @@ function cleanup()
 	global $cache, $cfg, $tracker, $tracker_stats;
 	
 	$cache->gc();
+	$cache->set('next_cleanup', TIMENOW + $cfg['cleanup_interval']);
 	
 	$peer_expire_time = TIMENOW - floor($cfg['announce_interval'] * $cfg['expire_factor']);
-	mysql_query("DELETE FROM $tracker WHERE update_time < $peer_expire_time") or msg_die("MySQL error: " . mysql_error());
+	mysql_query("DELETE LOW_PRIORITY FROM $tracker WHERE update_time < $peer_expire_time") or msg_die("MySQL error: " . mysql_error());
 	
 	$torrent_expire_time = TIMENOW - TORRENTS_EXPIRE;
-	mysql_query("DELETE FROM $tracker_stats WHERE update_time < $torrent_expire_time") or msg_die("MySQL error: " . mysql_error());
-	
-	$cache->set('next_cleanup', TIMENOW + $cfg['cleanup_interval']);
+	mysql_query("DELETE LOW_PRIORITY FROM $tracker_stats WHERE update_time < $torrent_expire_time") or msg_die("MySQL error: " . mysql_error());
 }
 
 function utime()
