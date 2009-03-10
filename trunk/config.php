@@ -1,5 +1,7 @@
 <?php
 
+$cfg = array();
+
 // MySQL settings
 $cfg['dbhost'] = "localhost";
 $cfg['dbuser'] = "root";
@@ -11,7 +13,6 @@ $tracker_stats = 'tracker_stats';
 $search_intrv  = 10; // interval for search attempts
 $search_opt_keep = 15 * 86400; // seconds to keep search options in cookie
 $min_check_intrv = 14400; // min inverval to check torrent name
-
 
 // Tracker
 $cfg['announce_interval']  = 3600;
@@ -25,10 +26,8 @@ $cfg['verify_reported_ip'] = false; // Verify reported IP?
 $cfg['base_path'] = isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : dirname(realpath(__FILE__)); // Without end slash
 $cfg['TRACKERS_URL'] = 'http://re-tracker.ru/trackerssimple.ini'; // Path to obtain tracker list
 
-
 // Cache
 $cfg['cache_type'] = 'filecache'; // Available cache types: none, APC, memcached, sqlite, filecache
-
 
 $cfg['cache']['memcached'] = array(
 	'host'         => '127.0.0.1', 
@@ -36,7 +35,6 @@ $cfg['cache']['memcached'] = array(
 	'pconnect'     => true, // use persistent connection
 	'con_required' => true
 ); // exit script if can't connect
-
 
 $cfg['cache']['sqlite'] = array(
 	'db_file_path' => '/path/to/sqlite.cache.db', #  /dev/shm/sqlite.db
