@@ -2,7 +2,8 @@
 
 include_once (dirname(realpath(__FILE__)).'/common.php');
 include_once (dirname(realpath(__FILE__)).'/functions.php');
-unset($dir);
+
+error_reporting(0);
 
 $trackers = get_trackers();
 	
@@ -132,10 +133,10 @@ else
 				if (strpos($tr, 're-tracker.ru'))
 				{
 					$parts = @parse_url($tr);
-					parse_str($parts['query'], $q);
+					@parse_str($parts['query'], $q);
 					
-					$query['size']    = $q['size'];
-					$query['comment'] = $q['comment'];
+					$query['size']    = @$q['size'];
+					$query['comment'] = @$q['comment'];
 					unset($tr);
 				}
 			}
