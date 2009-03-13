@@ -437,7 +437,7 @@ if($city)
 		if ($admin)
 		{
 			$tr = rawurlencode("http://re-tracker.ru/announce.php?name=$name&size={$tor['size']}&comment=$comment&isp=$isp");
-			$magnet = create_magnet($name, $tor['size'], strtoupper(base32_encode(hex2bin($info_hash))), $tr);
+			$magnet = create_magnet(urlencode($name), $tor['size'], strtoupper(base32_encode(hex2bin($info_hash))), $tr);
 		}
 		else $magnet = null;
 
