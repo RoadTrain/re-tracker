@@ -28,15 +28,6 @@ if (isset($_GET['isp_list']) AND $city = intval($_GET['isp_list']))
 ob_start();
 session_start(); // Start a session for store the options
 
-if(isset($_SESSION['last_search']) && $_SESSION['last_search'] > (TIMENOW - $search_intrv))
-{
-	$seconds = ($search_intrv + $_SESSION['last_search']) - TIMENOW;
-	include_once 'message.htm';
-//	die('Too many search attempts. Wait '. (($search_intrv + $_SESSION['last_search']) - TIMENOW) .' seconds');
-	die();
-}
-
-
 $http_query = $_GET;
 unset($http_query['start']);
 
@@ -48,6 +39,14 @@ unset($http_query);
 if(isset($_SESSION['last_query']) AND ($_SESSION['last_query'] !== $query_id))
 {
 	$_SESSION['last_search'] = TIMENOW;
+}
+
+if(isset($_SESSION['last_search']) && $_SESSION['last_search'] > (TIMENOW - $search_intrv))
+{
+	$seconds = ($search_intrv + $_SESSION['last_search']) - TIMENOW;
+	include_once 'message.htm';
+//	die('Too many search attempts. Wait '. (($search_intrv + $_SESSION['last_search']) - TIMENOW) .' seconds');
+	die();
 }
 
 $_SESSION['last_query'] = $query_id;
@@ -519,9 +518,9 @@ $pagination = generate_pagination($pg_url, $count, 50, $start);
 </td><!--/main_content-->
 </tr></table></div><!--/page_content-->
 </div><!--/body_container-->
-	<div class="copyright tCenter" align="center">
-		Powered by <a href="http://re-tracker.ru/" target="_blank">Re-Tracker.ru</a> &copy; <strong>RoadTrain, FreeM@N</strong><br />
-	</div>
+		<div class="copyright tCenter" align="center">
+			Powered by <a href="http://re-tracker.ru/" target="_blank">Re-Tracker.ru</a> &copy; <strong>RoadTrain, FreeM@N</strong><br />
+		</div>
 </body>
 
 </html>
