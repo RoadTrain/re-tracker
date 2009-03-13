@@ -2,7 +2,6 @@
 
 class CheckMe
 {
-
 	public $timeout = 10;
 
 	public $one_shot = 10;
@@ -14,7 +13,6 @@ class CheckMe
 
 	public function __construct()
 	{
-
 		if (!defined('TIMENOW'))
 		{
 			define('TIMENOW', time());
@@ -34,12 +32,11 @@ class CheckMe
 		$this->blacklist[] = "www.nnm-club.org";
 		$this->blacklist[] = "torrent.elcomnet.ru";
 		$this->blacklist[] = "torrent.dml";
-	
+		$this->blacklist[] = "etorrent.ru";
 	}
 
 	public function updateName($torrent_id, $update = true, $return = false)
 	{
-
 		$torrent_id = intval($torrent_id);
 		if (!$torrent_id)
 		{
@@ -88,10 +85,10 @@ class CheckMe
 			{
 				$b = $obj->find('b font[color=green]', 1);
 			}
-			elseif (strpos($comment, 'etorrent.ru'))
+			/*elseif (strpos($comment, 'etorrent.ru'))
 			{
 				$b = $obj->find('#det_name', 0);
-			}
+			}*/
 			elseif (strpos($comment, 'netlab.e2k.ru'))
 			{
 				$b = $obj->find('td.cattop', 0);
@@ -139,7 +136,6 @@ class CheckMe
 
 	public function batchUpdate()
 	{
-
 		ini_set("max_execution_time", 3600);
 		
 		$sql = "SELECT `comment`, `last_check`, `torrent_id`
@@ -170,7 +166,6 @@ class CheckMe
 
 	public function updateData($torrent_id, $name = "")
 	{
-
 		$name = trim($name);
 		$name = mysql_real_escape_string($name);
 		$sql = "UPDATE `tracker_stats` SET
