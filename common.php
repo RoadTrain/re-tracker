@@ -102,16 +102,48 @@ function dummy_exit($interval = 60)
 	die($output);
 }
 
-function encode_ip($ip)
+function encode_ip ($dotquad_ip)
 {
-	$d = explode('.', $ip);
-	
-	return sprintf('%02x%02x%02x%02x', $d[0], $d[1], $d[2], $d[3]);
+	$ip_sep = explode('.', $dotquad_ip);
+	if (count($ip_sep) == 4)
+	{
+		return sprintf('%02x%02x%02x%02x', $ip_sep[0], $ip_sep[1], $ip_sep[2], $ip_sep[3]);
+	}
+
+	$ip_sep = explode(':', preg_replace('/(^:)|(:$)/', '', $dotquad_ip));
+	$res = '';
+	foreach ($ip_sep as $x)
+	{
+		$res .= sprintf('%0'. ($x == '' ? (9 - count($ip_sep)) * 4 : 4) .'s', $x);
+	}
+	return $res;
 }
 
-function decode_ip($ip)
+function decode_ip ($int_ip)
 {
-	return long2ip("0x{$ip}");
+	if (strlen($int_ip) == 32) 
+	{
+		$int_ip = substr(chunk_split($int_ip, 4, ':'), 0, 39);
+		$int_ip = ':'. implode(':', array_map("hexhex", explode(':',$int_ip))) .':';
+		preg_match_all("/(:0)+/", $int_ip, $zeros);
+		if (count($zeros[0]) > 0) 
+		{
+			$match = '';
+			foreach($zeros[0] as $zero)
+				if (strlen($zero) > strlen($match))
+					$match = $zero;
+			$int_ip = preg_replace('/'. $match .'/', ':', $int_ip, 1);
+		}
+		return preg_replace('/(^:([^:]))|(([^:]):$)/', '$2$4', $int_ip);
+	}
+	if (strlen($int_ip) !== 8) $int_ip = '00000000';
+	$hexipbang = explode('.', chunk_split($int_ip, 2, '.'));
+	return hexdec($hexipbang[0]). '.' . hexdec($hexipbang[1]) . '.' . hexdec($hexipbang[2]) . '.' . hexdec($hexipbang[3]);
+}
+
+function hexhex($value)
+{
+	return dechex(hexdec($value));
 }
 
 function verify_ip($ip)
@@ -253,17 +285,13 @@ function array_deep(&$var, $fn, $one_dimensional = false, $array_only = false)
 // based on OpenTracker [http://whitsoftdev.com/opentracker]
 function bencode($var)
 {
-	if (is_string($var))
+	if (is_int($var))
 	{
-		return strlen($var) .':'. $var;
-	}
-	else if (is_int($var))
-	{
-		return 'i'. $var .'e';
+		return 'i' . $var . 'e';
 	}
 	else if (is_float($var))
 	{
-		return 'i'. sprintf('%.0f', $var) .'e';
+		return 'i' . sprintf('%.0f', $var) . 'e';
 	}
 	else if (is_array($var))
 	{
@@ -274,36 +302,36 @@ function bencode($var)
 		else
 		{
 			$assoc = false;
-
+			
 			foreach ($var as $key => $val)
 			{
-				if (!is_int($key))
+				if (!is_int($key) && !is_float($var))
 				{
 					$assoc = true;
 					break;
 				}
 			}
-
+			
 			if ($assoc)
 			{
 				ksort($var, SORT_REGULAR);
 				$ret = 'd';
-
+				
 				foreach ($var as $key => $val)
 				{
 					$ret .= bencode($key) . bencode($val);
 				}
-				return $ret .'e';
+				return $ret . 'e';
 			}
 			else
 			{
 				$ret = 'l';
-
+				
 				foreach ($var as $val)
 				{
 					$ret .= bencode($val);
 				}
-				return $ret .'e';
+				return $ret . 'e';
 			}
 		}
 	}

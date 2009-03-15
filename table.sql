@@ -2,8 +2,8 @@ DROP TABLE IF EXISTS `tracker`;
 CREATE TABLE IF NOT EXISTS `tracker` (
   `torrent_id` mediumint(9) NOT NULL,
   `peer_hash` char(32) collate utf8_bin NOT NULL,
-  `ip` char(15) collate utf8_bin NOT NULL,
-  `ipv6` char(39) collate utf8_bin NOT NULL,
+  `ip` char(8) collate utf8_bin NOT NULL,
+  `ipv6` char(32) collate utf8_bin NOT NULL,
   `port` smallint(5) unsigned NOT NULL default '0',
   `seeder` tinyint(1) NOT NULL,
   `update_time` int(11) NOT NULL,

@@ -169,14 +169,14 @@ if (!$torrent_id)
 
 $isp = explode(' ', $isp);
 	
-$ipv6type = verify_ip($ipv6);
-if ($ipv6type !== 'ipv6') $ipv6 = null;
+$ipv6 = ($iptype == 'ipv6') ? encode_ip($ip) : ((verify_ip($ipv6) == 'ipv6') ? encode_ip($ipv6) : null);
+$ipv4 = ($iptype == 'ipv4') ? encode_ip($ip) : ((verify_ip($ipv4) == 'ipv4') ? encode_ip($ipv4) : null);
 
 $sql_data = array(
 	'torrent_id'   => $torrent_id,
 	'peer_hash'    => $peer_hash,
-	'ip'           => ($iptype == 'ipv4') ? $ip : $ipv4,
-	'ipv6'         => ($iptype == 'ipv6') ? $ip : $ipv6,
+	'ip'           => $ipv4,
+	'ipv6'         => $ipv6,
 	'port'         => $port,
 	'seeder'       => $seeder,
 	'update_time'  => TIMENOW,
@@ -227,26 +227,27 @@ if (!$output)
 	$peerset6 = array();
 	$seeders  = $leechers = $peers = 0;
 
-	while ($row = mysql_fetch_assoc($result))
+	while ($peer = mysql_fetch_assoc($result))
 	{
 		$peers++;
 		
-		if($row['seeder'])
+		if($peer['seeder'])
 		{
 			$seeders++;
 		}
-		unset($row['seeder']);
+		unset($peer['seeder']);
 		
-		if(!empty($row['ipv6']))
+		if(!empty($peer['ip']) && empty($peer['ipv6']))
 		{
-			$row['ip'] = $row['ipv6'];
-			unset($row['ipv6']);
-			$peerset6[] = $row;
+			$peer['ip'] = decode_ip($peer['ip']);
+			unset($peer['ipv6']);
+			$peerset[] = $peer;
 		}
-		else
+		if(!empty($peer['ipv6']))
 		{
-			unset($row['ipv6']);
-			$peerset[] = $row;
+			$peer['ip'] = decode_ip($peer['ipv6']);
+			unset($peer['ipv6']);
+			$peerset6[] = $peer;
 		}
 	}
 	$leechers = $peers - $seeders;
@@ -271,48 +272,32 @@ if (!$output)
 		'incomplete'   => (int) $leechers,
 	);
 	
+	// Generate output
+	$compact_mode = ($cfg['compact_always'] || !empty($compact));
+
+	if ($compact_mode)
+	{
+		$peers = '';
+
+		foreach ($output['peers'] as $peer)
+		{
+			$peers .= pack('Nn', ip2long($peer['ip']), $peer['port']);
+		}
+	
+		$output['peers'] = $peers;
+	
+		$peers6 = '';
+
+		foreach ($output['peers6'] as $peer)
+		{
+			$peers6 .= @pack('H32n', encode_ip($peer['ip']), $peer['port']);
+		}
+	
+		$output['peers6'] = $peers6;	
+	}
+	
 	$peers_list_cached = $cache->set(PEERS_LIST_PREFIX . $torrent_id, $output, PEERS_LIST_EXPIRE);
 }
-
-// Generate output
-$compact_mode = ($cfg['compact_always'] || !empty($compact));
-
-if ($compact_mode)
-{
-	$peers = '';
-
-	foreach ($output['peers'] as $peer)
-	{
-		$peers .= pack('Nn', ip2long($peer['ip']), $peer['port']);
-	}
-	
-	$output['peers'] = $peers;
-	
-	/*
-	$peers6 = '';
-
-	foreach ($output['peers6'] as $peer)
-	{
-		$peers6 .= pack('Nn', ip2long($peer['ip']), $peer['port']);
-	}
-	
-	$output['peers6'] = $peers6;
-	*/
-}
-/*
-else
-{
-	$peers = array();
-
-	foreach ($output['peers'] as $peer)
-	{
-		$peers[] = array(
-			'ip'   => decode_ip($peer['ip']),
-			'port' => intval($peer['port']),
-		);
-	}
-}
-*/
 
 // Return data to client
 echo bencode($output);
