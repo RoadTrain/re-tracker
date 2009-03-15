@@ -214,7 +214,7 @@ $from = "$tracker_stats ts";
 $join_tr = false;
 
 $iptype = verify_ip($_SERVER['REMOTE_ADDR']);
-$ip = mysql_escape_string($_SERVER['REMOTE_ADDR']);
+$ip = mysql_escape_string(encode_ip($_SERVER['REMOTE_ADDR']));
 
 if($my)
 {
