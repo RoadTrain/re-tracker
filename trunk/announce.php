@@ -122,10 +122,8 @@ $peer_hash = md5(
 // Get cached peer info from previous announce (last peer info)
 $lp_info = $cache->get(PEER_HASH_PREFIX . $peer_hash);
 
-$update_time = isset($lp_info['update_time']) ? $lp_info['update_time'] : 0;
-
 // Drop fast announce
-if ($update_time > (TIMENOW - $announce_interval + 60)  && (!isset($event) || $event !== 'stopped'))
+if ($lp_info  && (!isset($event) || $event !== 'stopped'))
 {
 	drop_fast_announce($lp_info);
 }
