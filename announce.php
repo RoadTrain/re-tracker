@@ -132,8 +132,10 @@ $peer_hash = md5(
 // Get cached peer info from previous announce (last peer info)
 $lp_info = $cache->get(PEER_HASH_PREFIX . $peer_hash);
 
+$update_time = isset($lp_info['update_time']) ? $lp_info['update_time'] : 0;
+
 // Drop fast announce
-if ($lp_info && (!isset($event) || $event !== 'stopped'))
+if ($update_time > (TIMENOW - $announce_interval + 60)  && (!isset($event) || $event !== 'stopped'))
 {
 	drop_fast_announce($lp_info);
 }
@@ -144,7 +146,7 @@ $seeder  = ($left == 0) ? 1 : 0;
 // Stopped event
 if ($event === 'stopped')
 {
-	mysql_query("DELETE FROM tracker WHERE peer_hash = '$peer_hash'") or msg_die("MySQL error: " . mysql_error());
+	mysql_query("DELETE FROM $tracker WHERE peer_hash = '$peer_hash'") or msg_die("MySQL error: " . mysql_error());
 	$cache->rm(PEER_HASH_PREFIX . $peer_hash);
 	die();
 }
@@ -153,13 +155,16 @@ if ($event === 'stopped')
 $name = mysql_real_escape_string($name);
 $comment = mysql_real_escape_string($comment);
 
-$torrent_id = 0;
+$torrent_id = isset($lp_info['torrent_id']) ? $lp_info['torrent_id'] : 0;
 
-$r = mysql_query("
-			SELECT torrent_id FROM $tracker_stats WHERE info_hash = '$info_hash_hex' LIMIT 1
-	") or msg_die("MySQL error: k" . mysql_error());
-$c = @mysql_fetch_assoc($r);
-$torrent_id = (int) $c['torrent_id'];
+if(!$torrent_id)
+{
+	$r = mysql_query("
+				SELECT torrent_id FROM $tracker_stats WHERE info_hash = '$info_hash_hex' LIMIT 1
+		") or msg_die("MySQL error: k" . mysql_error());
+	$c = @mysql_fetch_assoc($r);
+	$torrent_id = (int) $c['torrent_id'];
+}
 
 if (!$torrent_id)
 {
@@ -209,6 +214,7 @@ mysql_query("REPLACE INTO tracker ($columns_sql) VALUES ($values_sql)")
 
 // Store peer info in cache
 $lp_info = array(
+	'torrent_id'  => (int)   $torrent_id,
 	'downloaded'  => (float) $downloaded,
 	'seeder'      => (int)   $seeder,
 	'update_time' => (int)   TIMENOW,
