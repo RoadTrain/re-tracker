@@ -34,10 +34,8 @@ $input_vars_str = array(
 // Numeric
 $input_vars_num = array(
 	'port',
-	'uploaded',
-	'downloaded',
-	'left',
 	'numwant',
+	'left',
 	'compact',
 	'size',
 );
@@ -54,7 +52,7 @@ foreach ($input_vars_num as $var_name)
 	$$var_name = isset($_GET[$var_name]) ? (float) $_GET[$var_name] : null;
 }
 
-// Verify required request params (info_hash, peer_id, port, uploaded, downloaded, left)
+// Verify required request params (info_hash, peer_id, port, left)
 if (!isset($info_hash) || strlen($info_hash) != 20)
 {
 	// Похоже, к нам зашли через браузер.
@@ -70,14 +68,6 @@ if (!isset($peer_id) || strlen($peer_id) != 20)
 if (!isset($port) || $port < 0 || $port > 0xFFFF)
 {
 	msg_die('Invalid port');
-}
-if (!isset($uploaded) || $uploaded < 0)
-{
-	msg_die('Invalid uploaded value');
-}
-if (!isset($downloaded) || $downloaded < 0)
-{
-	msg_die('Invalid downloaded value');
 }
 if (!isset($left) || $left < 0)
 {
@@ -190,9 +180,6 @@ $sql_data = array(
 	'port'         => $port,
 	'seeder'       => $seeder,
 	'update_time'  => TIMENOW,
-	'remain'       => $left,
-	'downloaded'   => $downloaded,
-	'uploaded'     => $uploaded,
 	'city'         => !empty($isp[0]) ? $isp[0] : null,
 	'isp'          => !empty($isp[1]) ? $isp[1] : null,
 );
@@ -215,10 +202,8 @@ mysql_query("REPLACE INTO tracker ($columns_sql) VALUES ($values_sql)")
 // Store peer info in cache
 $lp_info = array(
 	'torrent_id'  => (int)   $torrent_id,
-	'downloaded'  => (float) $downloaded,
 	'seeder'      => (int)   $seeder,
 	'update_time' => (int)   TIMENOW,
-	'uploaded'    => (float) $uploaded,
 );
 
 $lp_info_cached = $cache->set(PEER_HASH_PREFIX . $peer_hash, $lp_info, PEER_HASH_EXPIRE);
