@@ -513,7 +513,7 @@ if ($_args)
 }
 
 $pg_url = basename(__FILE__) .'?'. $_args_str;
-$pagination = generate_pagination($pg_url, $count, 50, $start);
+$pagination = generate_pagination($pg_url, $count, 25, $start);
 ?>
 
 <div class="nav">
