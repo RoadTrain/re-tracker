@@ -160,7 +160,6 @@ function verify_ip($ip)
 		$iptype = false;
 	
 	return $iptype;
-	//return preg_match('#^(\d{1,3}\.){3}\d{1,3}$#', $ip);
 }
 
 function str_compact($str)
