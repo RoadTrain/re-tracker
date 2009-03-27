@@ -527,6 +527,30 @@ $pagination = generate_pagination($pg_url, $count, 25, $start);
 		<div class="copyright tCenter" align="center">
 			Powered by <a href="http://re-tracker.ru/" target="_blank">Re-Tracker.ru</a> &copy; <strong>RoadTrain, FreeM@N</strong><br />
 		</div>
+		<!-- Гугл аналитик -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-5606988-4");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+<!-- / Гугл аналитик -->
+<!--Лайв интернет-->
+<p align="center"><script type="text/javascript"><!--
+document.write("<a href='http://www.liveinternet.ru/click' "+
+"target=_blank><img src='http://counter.yadro.ru/hit?t26.6;r"+
+escape(document.referrer)+((typeof(screen)=="undefined")?"":
+";s"+screen.width+"*"+screen.height+"*"+(screen.colorDepth?
+screen.colorDepth:screen.pixelDepth))+";u"+escape(document.URL)+
+";"+Math.random()+
+"' alt='' title='LiveInternet: показано число посетителей за"+
+" сегодня' "+
+"border=0 width=88 height=15><\/a>")//--></script>
+<!--/Лайв интернет-->
+<br>
 </body>
 </html>
 

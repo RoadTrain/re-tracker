@@ -127,7 +127,7 @@ class cache_memcached extends cache_common
 			$this->connect();
 		}
 		$ttl = ($ttl > 86400 || !$ttl) ? 86400 : intval($ttl);
-		return ($this->connected) ? $this->memcache->set($name, $value, false, $ttl) : false;
+		return ($this->connected) ? $this->memcache->set($name, $value, MEMCACHE_COMPRESSED , $ttl) : false;
 	}
 
 	public function rm ($name)
