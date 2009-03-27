@@ -234,6 +234,10 @@ function get_trackers()
 function generate_pagination($base_url, $num_items, $per_page, $start_item, $add_prevnext_text = TRUE)
 {
 	global $lang;
+	
+	if(trim($base_url, "?& /")=="torrents.php") {
+		$base_url = 'torrents.php?o=1&s=2';
+	}
 
 // Pagination Mod
 	$begin_end = 3;

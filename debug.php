@@ -15,8 +15,7 @@ if (isset($_REQUEST['info_hash']))
 
 $cache->rm('next_cleanup');
 
-?>
-<html>
+?><html>
 <form action="debug.php" method="get">
 	<input type="text" name="info_hash" value="<?=(!empty($info_hash) ? $info_hash : '');?>">
 	<input type="submit" name="" value="View"> 
