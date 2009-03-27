@@ -63,7 +63,7 @@ $_SESSION['last_search'] = TIMENOW;
 <head>
 <meta http-equiv="content-type" content="text/html; charset=windows-1251" />
 
-<link rel="stylesheet" href="./main.css?" type="text/css">
+<link rel="stylesheet" href="./main.css?v=1" type="text/css">
 
 <script type="text/javascript" src="./jquery.pack.js?v=1"></script>
 <script type="text/javascript" src="./main.js?v=1"></script>
@@ -481,7 +481,7 @@ if($city)
 		<? if($admin) { ?>
 		<a class="small tr-dl" href="<?=$magnet;?>"><?=$size;?></a>
 		<? } else { ?>
-		<p class="small tr-dl"><?=$size;?></a>
+		<p class="small tr-dl"><?=$size;?></p>
 		<? } ?>
 	</td>
 	<td class="row4 seedmed" title="Раздают"><b><?=$seeders;?></b></td>
