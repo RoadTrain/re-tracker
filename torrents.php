@@ -503,14 +503,19 @@ if($city)
 </table>
 <?
 $request = @parse_url($_SERVER['REQUEST_URI']);
+$query   = isset($request['query']) ? $request['query'] : "";
+parse_str ($query, $_args);
 
-parse_str (isset($request['query']) ? $request['query'] : "", $_args);
-$_args_str = '';
-if ($_args)
+if (empty($_args))
 {
-	unset($_args['start']);
-	$_args_str = http_build_query($_args);
+	$_args = array(
+		'o' => $order,
+		's' => $sort,
+	);
 }
+unset($_args['start']);	
+
+$_args_str = http_build_query($_args);
 
 $pg_url = basename(__FILE__) .'?'. $_args_str;
 $pagination = generate_pagination($pg_url, $count, 25, $start);

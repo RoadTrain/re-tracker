@@ -199,9 +199,9 @@ mysql_query("REPLACE INTO tracker ($columns_sql) VALUES ($values_sql)")
 
 // Store peer info in cache
 $lp_info = array(
-	'torrent_id'  => (int)   $torrent_id,
-	'seeder'      => (int)   $seeder,
-	'update_time' => (int)   TIMENOW,
+	'torrent_id'  => (int) $torrent_id,
+	'seeder'      => (int) $seeder,
+	'update_time' => (int) TIMENOW,
 );
 
 $lp_info_cached = $cache->set(PEER_HASH_PREFIX . $peer_hash, $lp_info, PEER_HASH_EXPIRE);
@@ -214,27 +214,18 @@ $output = $cache->get(PEERS_LIST_PREFIX . $torrent_id);
 if (!$output)
 {
 	$limit = (int) (($numwant > $cfg['peers_limit']) ? $cfg['peers_limit'] : $numwant);
-	
-	$result = mysql_query("SELECT ip, ipv6, port, seeder
-						   FROM $tracker
-						   WHERE torrent_id = '$torrent_id'
-						   LIMIT 300")
+
+	$result = mysql_query("SELECT ip, ipv6, port 
+						   FROM $tracker 
+						   WHERE torrent_id = '$torrent_id' 
+						   LIMIT $limit")
 	or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);
-	
+
 	$peerset  = array();
 	$peerset6 = array();
-	$seeders  = $leechers = $peers = 0;
 
 	while ($peer = mysql_fetch_assoc($result))
 	{
-		$peers++;
-		
-		if($peer['seeder'])
-		{
-			$seeders++;
-		}
-		unset($peer['seeder']);
-		
 		if(!empty($peer['ip']) && empty($peer['ipv6']))
 		{
 			$peer['ip'] = decode_ip($peer['ip']);
@@ -248,8 +239,17 @@ if (!$output)
 			$peerset6[] = $peer;
 		}
 	}
+
+	$result = mysql_query("SELECT SUM(seeder) AS seeders, COUNT(*) AS peers
+						   FROM $tracker
+						   WHERE torrent_id = '$torrent_id' ")
+	or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);
+
+	$s = mysql_fetch_assoc($result);
+	$seeders  = (int) $s['seeders'];
+	$peers    = (int) $s['peers'];
 	$leechers = $peers - $seeders;
-	
+
 	mysql_query("UPDATE $tracker_stats SET
 					seeders     = $seeders,
 					leechers    = $leechers,
@@ -269,7 +269,7 @@ if (!$output)
 		'complete'     => (int) $seeders,
 		'incomplete'   => (int) $leechers,
 	);
-	
+
 	// Generate output
 	$compact_mode = ($cfg['compact_always'] || !empty($compact));
 
@@ -281,19 +281,19 @@ if (!$output)
 		{
 			$peers .= pack('Nn', ip2long($peer['ip']), $peer['port']);
 		}
-	
+
 		$output['peers'] = $peers;
-	
+
 		$peers6 = '';
 
 		foreach ($output['peers6'] as $peer)
 		{
-			$peers6 .= @pack('H32n', encode_ip($peer['ip']), $peer['port']);
+			$peers6 .= pack('H32n', encode_ip($peer['ip']), $peer['port']);
 		}
-	
-		$output['peers6'] = $peers6;	
+
+		$output['peers6'] = $peers6;
 	}
-	
+
 	$peers_list_cached = $cache->set(PEERS_LIST_PREFIX . $torrent_id, $output, PEERS_LIST_EXPIRE);
 }
 
