@@ -1,12 +1,36 @@
 <?php
 
 $cfg = array();
+$tracker_tbl = 'tracker';
 
-// MySQL settings
-$cfg['dbhost'] = "localhost";
-$cfg['dbuser'] = "root";
-$cfg['dbpass'] = "root";
-$cfg['dbname'] = "re-tracker";
+// DB
+$cfg['tr_db_type'] = 'mysql';                   // Available db types: sqlite, mysql
+
+// DB - MySQL
+$cfg['tr_db']['mysql'] = array(
+	'dbhost'   => 'localhost',
+	'dbuser'   => 'root',
+	'dbpasswd' => 'root',
+	'dbname'   => 'retracker',
+	'pconnect' => false,
+	'log_name' => 'MySQL',
+);
+
+// DB - SQLite
+$cfg['tr_db']['sqlite'] = array(
+	'db_file_path' => 'C:\Program Files\VertrigoServ\Sqlitemanager\tr_db.sqlite',       // preferable on tmpfs
+	'table_schema' => "CREATE TABLE $tracker_tbl ( 
+						peer_hash CHAR(32), 
+						info_hash CHAR(20), 
+						ip        CHAR(8), 
+						ipv6      CHAR(32), 
+						port      SMALLINT(5), 
+						seeder    TINYINT(1) DEFAULT '0', 
+						update_time INT(11),
+						PRIMARY KEY (peer_hash, info_hash)
+						)",
+	'table_index'  => "CREATE INDEX tracker_info_hash ON $tracker_tbl(info_hash);"
+);
 
 $tracker = 'tracker';
 $tracker_stats = 'tracker_stats';

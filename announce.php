@@ -2,11 +2,17 @@
 
 include_once (dirname(realpath(__FILE__)).'/common.php');
 
+if (false)
+{
+	$query = http_build_query($_GET);
+	header("HTTP/1.1 301 Moved Permanently");
+	header("Location: http://human.roadtrain.ru/retracker/announce.php?$query");
+	exit;
+}
+
 $announce_interval = $cfg['announce_interval'];
 
 //dummy_exit ($announce_interval); // Включение/отключение анонсера
-
-db_init();
 
 if (!$cache->used || ($cache->get('next_cleanup') < TIMENOW))
 {
@@ -52,14 +58,12 @@ foreach ($input_vars_num as $var_name)
 	$$var_name = isset($_GET[$var_name]) ? (float) $_GET[$var_name] : null;
 }
 
-// Verify required request params (info_hash, peer_id, port, left)
+// Verify required request params (info_hash, peer_id, port, uploaded, downloaded, left)
 if (!isset($info_hash) || strlen($info_hash) != 20)
 {
-	// Похоже, к нам зашли через браузер.
-	// Вежливо отправим человека на инструкцию по псевдотрекеру.
-	//echo ;
-	//die;
-	msg_die("Invalid info_hash: '$info_hash' length ".strlen($info_hash)." <meta http-equiv=refresh content=0;url=http://re-tracker.ru/>");
+	// Redirect for browsers
+	msg_die("Invalid info_hash: '". bin2hex($info_hash) ."', length ". strlen($info_hash) ." 
+			<meta http-equiv=refresh content=0;url=http://re-tracker.ru/>");
 }
 if (!isset($peer_id) || strlen($peer_id) != 20)
 {
@@ -77,7 +81,7 @@ if (!isset($left) || $left < 0)
 // IP
 $ip = $_SERVER['REMOTE_ADDR'];
 
-if (!$cfg['ignore_reported_ip'] && isset($_GET['ip']) && $ip !== $_GET['ip'])
+if (!$cfg['ignore_reported_ip'] && isset($_GET['ip']) && $ip !== $_GET['ip'] && !strpos($_GET['ip'], ':'))
 {
 	if (!$cfg['verify_reported_ip'])
 	{
@@ -105,14 +109,12 @@ if (!$iptype = verify_ip($ip))
 {
 	msg_die("Invalid IP: $ip");
 }
-// Convert IP to HEX format
-//$ip_sql = encode_ip($ip);
 
 // ----------------------------------------------------------------------------
 // Start announcer
 //
 $info_hash_hex = bin2hex($info_hash);
-$info_hash_sql = rtrim(mysql_real_escape_string($info_hash), ' ');
+$info_hash_sql = rtrim($db->escape($info_hash), ' ');
 
 // Peer unique id
 $peer_hash = md5(
@@ -134,33 +136,33 @@ $seeder  = ($left == 0) ? 1 : 0;
 // Stopped event
 if ($event === 'stopped')
 {
-	mysql_query("DELETE FROM $tracker WHERE peer_hash = '$peer_hash'") or msg_die("MySQL error: " . mysql_error());
+	$db->query("DELETE FROM $tracker WHERE peer_hash = '$peer_hash'");
 	$cache->rm(PEER_HASH_PREFIX . $peer_hash);
 	die();
 }
 
 // Escape strings
-$name = mysql_real_escape_string($name);
-$comment = mysql_real_escape_string($comment);
+$name    = $db->escape($name);
+$comment = $db->escape($comment);
 
 $torrent_id = isset($lp_info['torrent_id']) ? $lp_info['torrent_id'] : 0;
 
 if(!$torrent_id)
 {
-	$r = mysql_query("
-				SELECT torrent_id FROM $tracker_stats WHERE info_hash = '$info_hash_hex' LIMIT 1
-		") or msg_die("MySQL error: k" . mysql_error());
-	$c = @mysql_fetch_assoc($r);
-	$torrent_id = (int) $c['torrent_id'];
+	$row = $db->fetch_row(" SELECT torrent_id 
+							FROM $tracker_stats 
+							WHERE info_hash = '$info_hash_hex' 
+							LIMIT 1");
+	$torrent_id = (int) $row['torrent_id'];
 }
 
 if (!$torrent_id)
 {
-	mysql_query("INSERT INTO $tracker_stats
+	$db->query("INSERT INTO $tracker_stats
 				(info_hash, reg_time, update_time, name, size, comment)
 				VALUES
 				('$info_hash_hex', '". TIMENOW ."', '". TIMENOW ."', '$name', '$size', '$comment')
-				") or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);
+				");
 	
 	$torrent_id = mysql_insert_id();
 }
@@ -187,20 +189,18 @@ $columns = $values = $dupdate = array();
 foreach ($sql_data as $column => $value)
 {
 	$columns[] = $column;
-	$values[]  = "'" . mysql_real_escape_string($value) . "'";
+	$values[]  = "'" . $db->escape($value) . "'";
 }
 
 $columns_sql = implode(', ', $columns);
 $values_sql = implode(', ', $values);
 
 // Update peer info
-mysql_query("REPLACE INTO tracker ($columns_sql) VALUES ($values_sql)") 
-  or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);
+$db->query("REPLACE INTO $tracker ($columns_sql) VALUES ($values_sql)");
 
 // Store peer info in cache
 $lp_info = array(
 	'torrent_id'  => (int) $torrent_id,
-	'seeder'      => (int) $seeder,
 	'update_time' => (int) TIMENOW,
 );
 
@@ -214,43 +214,77 @@ $output = $cache->get(PEERS_LIST_PREFIX . $torrent_id);
 if (!$output)
 {
 	$limit = (int) (($numwant > $cfg['peers_limit']) ? $cfg['peers_limit'] : $numwant);
+	$compact_mode = ($cfg['compact_always'] || !empty($compact));
 
-	$result = mysql_query("SELECT ip, ipv6, port 
-						   FROM $tracker 
-						   WHERE torrent_id = '$torrent_id' 
-						   LIMIT $limit")
-	or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);
+	$rowset = $db->fetch_rowset("
+		SELECT ip, ipv6, port
+		FROM $tracker
+		WHERE torrent_id = $torrent_id
+		ORDER BY ". $db->random_fn ."
+		LIMIT $limit
+	");
 
-	$peerset  = array();
-	$peerset6 = array();
-
-	while ($peer = mysql_fetch_assoc($result))
+	// Pack peers if compact mode
+	if ($compact_mode)
 	{
-		if(!empty($peer['ip']) && empty($peer['ipv6']))
+		$peerset = $peerset6 = '';
+		
+		foreach ($rowset as $peer)
 		{
-			$peer['ip'] = decode_ip($peer['ip']);
-			unset($peer['ipv6']);
-			$peerset[] = $peer;
+			if ($peer['seeder'])
+			{
+				$seeders++;
+			}
+			unset($peer['seeder']);
+			
+			if(!empty($peer['ip']))
+			{
+				$peerset .= pack('Nn', ip2long(decode_ip($peer['ip'])), $peer['port']);
+			}
+			if(!empty($peer['ipv6']))
+			{
+				$peerset6 .= pack('H32n', $peer['ipv6'], $peer['port']);
+			}
 		}
-		if(!empty($peer['ipv6']))
+	}
+	else
+	{
+		$peerset = $peerset6 = array();
+		
+		foreach ($rowset as $peer)
 		{
-			$peer['ip'] = decode_ip($peer['ipv6']);
-			unset($peer['ipv6']);
-			$peerset6[] = $peer;
+			if ($peer['seeder'])
+			{
+				$seeders++;
+			}
+			unset($peer['seeder']);
+			
+			if(!empty($peer['ip']))
+			{
+				$peerset[] = array(
+					'ip'   => decode_ip($peer['ip']),
+					'port' => intval($peer['port']),
+				);
+			}
+			if(!empty($peer['ipv6']))
+			{
+				$peerset6[] = array(
+					'ip'   => decode_ip($peer['ipv6']),
+					'port' => intval($peer['port']),
+				);
+			}
 		}
 	}
 
-	$result = mysql_query("SELECT SUM(seeder) AS seeders, COUNT(*) AS peers
+	$row = $db->fetch_row("SELECT SUM(seeder) AS seeders, COUNT(*) AS peers
 						   FROM $tracker
-						   WHERE torrent_id = '$torrent_id' ")
-	or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);
+						   WHERE torrent_id = '$torrent_id' ");
 
-	$s = mysql_fetch_assoc($result);
-	$seeders  = (int) $s['seeders'];
-	$peers    = (int) $s['peers'];
+	$seeders  = (int) $row['seeders'];
+	$peers    = (int) $row['peers'];
 	$leechers = $peers - $seeders;
 
-	mysql_query("UPDATE $tracker_stats SET
+	$db->query("UPDATE $tracker_stats SET
 					seeders     = $seeders,
 					leechers    = $leechers,
 					update_time = '". TIMENOW ."',
@@ -260,7 +294,7 @@ if (!$output)
 				 WHERE torrent_id = $torrent_id
 				") or msg_die("MySQL error: " . mysql_error() .' line '. __LINE__);
 
-
+	// Generate output
 	$output = array(
 		'interval'     => (int) $announce_interval, // tracker config: announce interval (sec?)
 		'min interval' => (int) 1, // tracker config: min interval (sec?)
@@ -268,31 +302,7 @@ if (!$output)
 		'peers6'       => $peerset6,
 		'complete'     => (int) $seeders,
 		'incomplete'   => (int) $leechers,
-	);
-
-	// Generate output
-	$compact_mode = ($cfg['compact_always'] || !empty($compact));
-
-	if ($compact_mode)
-	{
-		$peers = '';
-
-		foreach ($output['peers'] as $peer)
-		{
-			$peers .= pack('Nn', ip2long($peer['ip']), $peer['port']);
-		}
-
-		$output['peers'] = $peers;
-
-		$peers6 = '';
-
-		foreach ($output['peers6'] as $peer)
-		{
-			$peers6 .= pack('H32n', encode_ip($peer['ip']), $peer['port']);
-		}
-
-		$output['peers6'] = $peers6;
-	}
+	);	
 
 	$peers_list_cached = $cache->set(PEERS_LIST_PREFIX . $torrent_id, $output, PEERS_LIST_EXPIRE);
 }

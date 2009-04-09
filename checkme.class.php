@@ -17,13 +17,12 @@ class CheckMe
 		{
 			define('TIMENOW', time());
 		}
-		db_init();
-		
+
 		if ($this->user_agent == NULL)
 		{
 			$this->user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.6) Gecko/2009020911 Ubuntu/8.10 (intrepid) Firefox/3.0.6";
 		}
-		
+
 		$this->blacklist[] = "beetorrent.homeip.net";
 		$this->blacklist[] = "download.kanet.ru";
 		$this->blacklist[] = "bt.od.ua";
@@ -37,26 +36,27 @@ class CheckMe
 
 	public function updateName($torrent_id, $update = true, $return = false)
 	{
+		global $db;
+
 		$torrent_id = intval($torrent_id);
 		if (!$torrent_id)
 		{
 			return $return ? 'Invalid request' : FALSE;
 		}
-		
+
 		$sql = "SELECT `comment`, `last_check` FROM `tracker_stats` WHERE `torrent_id` = $torrent_id LIMIT 1";
-		$r = mysql_query($sql);
-		
-		if (!$r)
+		$row = $db->fetch_row($sql);
+
+		if (empty($row))
 		{
 			return $return ? 'Torrent not exist' : FALSE;
 		}
-		
-		$a = mysql_fetch_assoc($r);
-		$comment = trim($a['comment']);
+
+		$comment = trim($row['comment']);
 		if (is_url($comment))
 		{
 			$name = "";
-			
+
 			$parts = parse_url($comment);
 			$host = $parts['host'];
 			if (array_search($host, $this->blacklist))
@@ -64,7 +64,7 @@ class CheckMe
 				$this->updateData($torrent_id);
 				return $return ? 'Could not obtain torrent name from url (tracker is down or not supported)' : FALSE;
 			}
-			
+
 			@ini_set('user_agent', $this->user_agent);
 			$html = @file_get_contents($comment, 0, stream_context_create(array('http'=>array('timeout'=>$this->timeout))));
 			$html = str_replace('<wbr>', '', str_replace('</wbr>', '', $html));
@@ -75,7 +75,7 @@ class CheckMe
 			{
 				return $return ? 'Could not obtain torrent name from url (tracker is down or not supported)' : FALSE;
 			}
-			
+
 			$b = NULL;
 			if (strpos($comment, 'interfilm.'))
 			{
@@ -116,7 +116,7 @@ class CheckMe
 			{
 				return $return ? 'Could not obtain torrent name from url (tracker is down or not supported)' : FALSE;
 			}
-			
+
 			if ($return)
 			{
 				$name = iconv('CP1251', 'UTF-8', $name);
@@ -136,8 +136,10 @@ class CheckMe
 
 	public function batchUpdate()
 	{
+		global $db;
+
 		ini_set("max_execution_time", 3600);
-		
+
 		$sql = "SELECT `comment`, `last_check`, `torrent_id`
 				FROM
 					`tracker_stats`
@@ -149,12 +151,12 @@ class CheckMe
 					`comment`!=''
 				ORDER BY `torrent_id` DESC
 				LIMIT " . $this->one_shot;
-		$req = mysql_query($sql);
+		$rowset = $db->fetch_rowset($sql);
 		$count = 0;
-		while ($res = mysql_fetch_assoc($req))
+		foreach ($rowset as $row)
 		{
 //			echo $res['torrent_id'] . "|" . $res['comment'];
-			if ($this->updateName($res['torrent_id'], TRUE, FALSE))
+			if ($this->updateName($row['torrent_id'], TRUE, FALSE))
 			{
 //				echo " - IT";
 				$count++;
@@ -166,13 +168,14 @@ class CheckMe
 
 	public function updateData($torrent_id, $name = "")
 	{
-		$name = trim($name);
-		$name = mysql_real_escape_string($name);
+		global $db;
+
+		$name = $db->escape(trim($name));
 		$sql = "UPDATE `tracker_stats` SET
 					" . ($name ? "name = '" . $name . "'," : "") . "
 					last_check = " . TIMENOW . "
 				WHERE torrent_id = " . $torrent_id . "
 				LIMIT 1";
-		mysql_query($sql);
+		$db->query($sql);
 	}
 }
