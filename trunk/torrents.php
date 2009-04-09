@@ -5,8 +5,6 @@ ini_set("display_errors","On");
 include_once (dirname(realpath(__FILE__)).'/common.php');
 include_once (dirname(realpath(__FILE__)).'/functions.php');
 
-db_init();
-
 if (!$cache->used || ($cache->get('next_cleanup') < TIMENOW))
 {
 	cleanup();
@@ -130,17 +128,14 @@ $stats = $cache->get('stats');
 
 if(!$stats)
 {
-	$result = mysql_query("SELECT COUNT(peer_hash) FROM $tracker") or die("MySQL error: " . mysql_error());
-	$row = mysql_fetch_row($result);
-	$peers_num = $row[0];
+	$row = $db->fetch_row("SELECT COUNT(peer_hash) AS peers_num FROM $tracker");
+	$peers_num = $row['peers_num'];
 
-	$result = mysql_query("SELECT COUNT(DISTINCT ip) FROM $tracker") or die("MySQL error: " . mysql_error());
-	$row = mysql_fetch_row($result);
-	$ip_num = $row[0];
+	$row = $db->fetch_row("SELECT COUNT(DISTINCT ip) AS ip_num FROM $tracker");
+	$ip_num = $row['ip_num'];
 
-	$result = mysql_query("SELECT COUNT(info_hash) FROM $tracker_stats") or die("MySQL error: " . mysql_error());
-	$row = mysql_fetch_row($result);
-	$torrents_num = $row[0];
+	$row = $db->fetch_row("SELECT COUNT(info_hash) AS torrents_num FROM $tracker_stats");
+	$torrents_num = $row['torrents_num'];
 
 	$stats = array(
 		'peers_num'    => $peers_num,
@@ -186,7 +181,7 @@ foreach ($GPC as $name => $params)
 	}
 }
 
-$title_match = sqlwildcardesc($title_match);
+$title_match = sqlwildcardesc($db->escape($title_match));
 
 switch($order)
 {
@@ -214,7 +209,7 @@ $from = "$tracker_stats ts";
 $join_tr = false;
 
 $iptype = verify_ip($_SERVER['REMOTE_ADDR']);
-$ip = mysql_escape_string(encode_ip($_SERVER['REMOTE_ADDR']));
+$ip = $db->escape(encode_ip($_SERVER['REMOTE_ADDR']));
 
 if($my)
 {
@@ -381,10 +376,8 @@ if($city)
 
 	if (!$count)
 	{
-		$sql = "SELECT COUNT(*) AS count FROM $from $where_sql LIMIT 1";
-		$c = mysql_fetch_assoc(mysql_query($sql));
-		$count = (int) $c['count'];
-		unset($c);
+		$row = $db->fetch_row("SELECT COUNT(*) AS count FROM $from $where_sql LIMIT 1");
+		$count = (int) $row['count'];
 		$_SESSION[$query_id] = $count;
 	}
 
@@ -397,7 +390,7 @@ if($city)
 			$where_sql
 			ORDER BY $order_sql $sort_sql
 			LIMIT $start, 25";
-	$r = mysql_query($sql) or die("MySQL error: " . mysql_error());
+	$torset = $db->fetch_rowset($sql);
 
 	$empty = array(
 		'torrent_id' => 0,
@@ -412,7 +405,7 @@ if($city)
 		'last_check' => time(),
 	);
 
-	while($tor = mysql_fetch_assoc($r))
+	foreach($torset as $tor)
 	{
 		$tor = array_merge($empty, $tor);
 		$torrent_id = $tor['torrent_id'];
@@ -532,30 +525,6 @@ $pagination = generate_pagination($pg_url, $count, 25, $start);
 		<div class="copyright tCenter" align="center">
 			Powered by <a href="http://re-tracker.ru/" target="_blank">Re-Tracker.ru</a> &copy; <strong>RoadTrain, FreeM@N</strong><br />
 		</div>
-		<!-- Гугл аналитик -->
-<script type="text/javascript">
-var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-</script>
-<script type="text/javascript">
-try {
-var pageTracker = _gat._getTracker("UA-5606988-4");
-pageTracker._trackPageview();
-} catch(err) {}</script>
-<!-- / Гугл аналитик -->
-<!--Лайв интернет-->
-<p align="center"><script type="text/javascript"><!--
-document.write("<a href='http://www.liveinternet.ru/click' "+
-"target=_blank><img src='http://counter.yadro.ru/hit?t26.6;r"+
-escape(document.referrer)+((typeof(screen)=="undefined")?"":
-";s"+screen.width+"*"+screen.height+"*"+(screen.colorDepth?
-screen.colorDepth:screen.pixelDepth))+";u"+escape(document.URL)+
-";"+Math.random()+
-"' alt='' title='LiveInternet: показано число посетителей за"+
-" сегодня' "+
-"border=0 width=88 height=15><\/a>")//--></script>
-<!--/Лайв интернет-->
-<br>
 </body>
 </html>
 

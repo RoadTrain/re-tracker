@@ -410,7 +410,7 @@ function hex2bin($h)
 
 function sqlwildcardesc($x)
 {
-	return str_replace(array("%","_"), array("\\%","\\_"), mysql_real_escape_string($x));
+	return str_replace(array("%","_"), array("\\%","\\_"), $x);
 }
 
 // bdecode: based on OpenTracker [http://whitsoftdev.com/opentracker]

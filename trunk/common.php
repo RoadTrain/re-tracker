@@ -35,16 +35,27 @@ switch ($cfg['cache_type'])
 		$cache = new cache_common();
 }
 
-// Functions & classes
-function db_init()
+switch ($cfg['tr_db_type'])
 {
-
-	global $cfg;
-	
-	@mysql_pconnect($cfg['dbhost'], $cfg['dbuser'], $cfg['dbpass']) or msg_die("Could not connect: " . mysql_error());
-	@mysql_select_db($cfg['dbname']);
+	case 'mysql':
+		$db = new mysql_common($cfg['tr_db']['mysql']);
+		break;
+	case 'sqlite':
+		$default_cfg = array(
+			'db_file_path' => '/dev/shm/tr.db.sqlite',
+			'table_name'   => 'tracker',
+			'table_schema' => 'CREATE TABLE tracker (...)',
+			'pconnect'     => true,
+			'con_required' => true,
+			'log_name'     => 'SQLite',
+		);
+		$db = new sqlite_common(array_merge($default_cfg, $cfg['tr_db']['sqlite']));
+		break;
+	default:
+		trigger_error('unsupported db type', E_USER_ERROR);
 }
 
+// Functions & classes
 function cleanup()
 {
 	global $cache, $cfg, $tracker, $tracker_stats;
@@ -341,5 +352,190 @@ function bencode($var)
 	else
 	{
 		return strlen($var) . ':' . $var;
+	}
+}
+
+class sqlite_common
+{
+	var $cfg = array(
+	             'db_file_path' => 'sqlite.db',
+	             'table_name'   => 'table_name',
+	             'table_schema' => 'CREATE TABLE table_name (...)',
+	             'pconnect'     => true,
+	             'con_required' => true,
+	             'log_name'     => 'SQLite',
+	           );
+	var $dbh                    = null;
+	var $table_create_attempts  = 0;
+	var $random_fn              = 'random()';
+
+	function sqlite_common ($cfg)
+	{
+		if (!function_exists('sqlite_open')) die('Error: Sqlite extension not installed');
+		$this->cfg = array_merge($this->cfg, $cfg);
+	}
+
+	function init ()
+	{
+		$connect_fn = ($this->cfg['pconnect']) ? 'sqlite_popen' : 'sqlite_open';
+
+		$this->dbh = @$connect_fn($this->cfg['db_file_path'], 0666, $sqlite_error);
+
+		if (!is_resource($this->dbh) && $this->cfg['con_required'])
+		{
+			trigger_error($sqlite_error, E_USER_ERROR);
+		}
+	}
+
+	function create_table ()
+	{
+		$this->table_create_attempts++;
+		$result = sqlite_query($this->dbh, $this->cfg['table_schema']);
+		$msg = ($result) ? "{$this->cfg['table_name']} table created" : $this->get_error_msg();
+		if(!empty($this->cfg['table_index'])) $result = sqlite_query($this->dbh, $this->cfg['table_index']);
+		trigger_error($msg, E_USER_WARNING);
+		return $result;
+	}
+
+	function query ($query, $type = 'unbuffered')
+	{
+		if (!is_resource($this->dbh)) $this->init();
+
+		$query_fn = ($type === 'unbuffered') ? 'sqlite_unbuffered_query' : 'sqlite_query';
+
+		if (!$result = $query_fn($this->dbh, $query, SQLITE_ASSOC))
+		{
+			if (!$this->table_create_attempts && !sqlite_num_rows(sqlite_query($this->dbh, "PRAGMA table_info({$this->cfg['table_name']})")))
+			{
+				if ($this->create_table())
+				{
+					$result = $query_fn($this->dbh, $query, SQLITE_ASSOC);
+				}
+			}
+			if (!$result)
+			{
+				$this->trigger_error($this->get_error_msg());
+			}
+		}
+
+		return $result;
+	}
+
+	function fetch_row ($query, $type = 'unbuffered')
+	{
+		$result = $this->query($query, $type);
+		return is_resource($result) ? sqlite_fetch_array($result, SQLITE_ASSOC) : false;
+	}
+
+	function fetch_rowset ($query, $type = 'unbuffered')
+	{
+		$result = $this->query($query, $type);
+		return is_resource($result) ? sqlite_fetch_all($result, SQLITE_ASSOC) : array();
+	}
+
+	function escape ($str)
+	{
+		return sqlite_escape_string($str);
+	}
+
+	function get_error_msg ()
+	{
+		return 'SQLite error #'. ($err_code = sqlite_last_error($this->dbh)) .': '. sqlite_error_string($err_code);
+	}
+
+	function trigger_error ($msg = 'DB Error')
+	{
+		if (error_reporting()) trigger_error($msg, E_USER_ERROR);
+	}
+}
+
+class mysql_common
+{
+	var $cfg = array(
+	             'dbhost'   => '',
+	             'dbuser'   => '',
+	             'dbpasswd' => '',
+	             'dbname'   => '',
+	             'pconnect' => false,
+	             'log_name' => 'MySQL',
+	           );
+	var $dbh       = null;
+	var $random_fn = 'RAND()';
+
+	function mysql_common ($cfg)
+	{
+		$this->cfg = array_merge($this->cfg, $cfg);
+	}
+
+	function init ()
+	{
+		// Connect
+		$connect_fn = ($this->cfg['pconnect']) ? 'mysql_pconnect' : 'mysql_connect';
+		if (@!$this->dbh = $connect_fn($this->cfg['dbhost'], $this->cfg['dbuser'], $this->cfg['dbpasswd']))
+		{
+			trigger_error($this->get_error_msg(), E_USER_ERROR);
+		}
+		register_shutdown_function(array(&$this, 'disconnect'));
+
+		// Select DB
+		if (!mysql_select_db($this->cfg['dbname'], $this->dbh))
+		{
+			trigger_error($this->get_error_msg(), E_USER_ERROR);
+		}
+		// Set charset
+		if (!$this->query("SET NAMES cp1251"))
+		{
+			trigger_error("Could not set charset cp1251", E_USER_ERROR);
+		}
+	}
+
+	function disconnect ()
+	{
+		if (is_resource($this->dbh)) mysql_close($this->dbh);
+		$this->dbh = $this->selected_db = null;
+	}
+
+	function query ($query, $type = 'unbuffered')
+	{
+		if (!is_resource($this->dbh)) $this->init();
+
+		$query_fn = ($type === 'unbuffered') ? 'mysql_unbuffered_query' : 'mysql_query';
+		if (!$result = $query_fn($query, $this->dbh))
+		{
+			$this->trigger_error($this->get_error_msg());
+		}
+		return $result;
+	}
+
+	function fetch_row ($query, $type = 'unbuffered')
+	{
+		$result = $this->query($query, $type);
+		return is_resource($result) ? mysql_fetch_array($result, MYSQL_ASSOC) : false;
+	}
+
+	function fetch_rowset ($query, $type = 'unbuffered')
+	{
+		$rowset = array();
+		$result = $this->query($query, $type);
+		if (is_resource($result))
+		{
+			while ($row = mysql_fetch_array($result, MYSQL_ASSOC)) $rowset[] = $row;
+		}
+		return $rowset;
+	}
+
+	function escape ($str)
+	{
+		return mysql_escape_string($str);
+	}
+
+	function get_error_msg ()
+	{
+		return (is_resource($this->dbh)) ? 'MySQL error #'. mysql_errno($this->dbh) .': '. mysql_error($this->dbh) : 'not connected';
+	}
+
+	function trigger_error ($msg = 'DB Error')
+	{
+		if (error_reporting()) trigger_error($msg, E_USER_ERROR);
 	}
 }
