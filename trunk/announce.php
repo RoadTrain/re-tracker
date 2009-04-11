@@ -231,12 +231,6 @@ if (!$output)
 		
 		foreach ($rowset as $peer)
 		{
-			if ($peer['seeder'])
-			{
-				$seeders++;
-			}
-			unset($peer['seeder']);
-			
 			if(!empty($peer['ip']))
 			{
 				$peerset .= pack('Nn', ip2long(decode_ip($peer['ip'])), $peer['port']);
@@ -253,12 +247,6 @@ if (!$output)
 		
 		foreach ($rowset as $peer)
 		{
-			if ($peer['seeder'])
-			{
-				$seeders++;
-			}
-			unset($peer['seeder']);
-			
 			if(!empty($peer['ip']))
 			{
 				$peerset[] = array(
