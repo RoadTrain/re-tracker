@@ -58,16 +58,18 @@ switch ($cfg['tr_db_type'])
 // Functions & classes
 function cleanup()
 {
-	global $cache, $cfg, $tracker, $tracker_stats;
+	global $db, $cache, $cfg, $tracker, $tracker_stats;
 	
 	$cache->gc();
 	$cache->set('next_cleanup', TIMENOW + $cfg['cleanup_interval']);
 	
+	$priority = ($cfg['tr_db_type'] == 'mysql') ? 'LOW_PRIORITY' : '';
+	
 	$peer_expire_time = TIMENOW - floor($cfg['announce_interval'] * $cfg['expire_factor']);
-	mysql_query("DELETE LOW_PRIORITY FROM $tracker WHERE update_time < $peer_expire_time") or msg_die("MySQL error: " . mysql_error());
+	$db->query("DELETE $priority FROM $tracker WHERE update_time < $peer_expire_time");
 	
 	$torrent_expire_time = TIMENOW - TORRENTS_EXPIRE;
-	mysql_query("DELETE LOW_PRIORITY FROM $tracker_stats WHERE update_time < $torrent_expire_time") or msg_die("MySQL error: " . mysql_error());
+	$db->query("DELETE $priority FROM $tracker_stats WHERE update_time < $torrent_expire_time");
 }
 
 function utime()
