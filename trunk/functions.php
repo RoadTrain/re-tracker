@@ -81,7 +81,7 @@ function create_date ($format, $gmepoch, $tz = null)
 
 	if (is_null($tz))
 	{
-		$tz = '3';
+		$tz = '4';
 	}
 
 	$date = gmdate($format, $gmepoch + (3600 * $tz));
