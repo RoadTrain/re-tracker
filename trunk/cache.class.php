@@ -2,76 +2,88 @@
 
 class cache_common
 {
+
 	public $used = false;
 
 	/**
 	 * Returns value of variable
 	 */
-	public function get ($name)
+	public function get($name)
 	{
+
 		return false;
 	}
 
 	/**
 	 * Store value of variable
 	 */
-	public function set ($name, $value, $ttl = 86400)
+	public function set($name, $value, $ttl = 86400)
 	{
+
 		return false;
 	}
 
 	/**
 	 * Remove variable
 	 */
-	public function rm ($name)
+	public function rm($name)
 	{
+
 		return false;
 	}
 
 	/**
 	 * Garbage collector
 	 */
-	public function gc ()
+	public function gc()
 	{
+
 		return false;
 	}
 }
 
 class cache_apc extends cache_common
 {
+
 	public $used = true;
 
 	public function __construct()
 	{
+
 		if (!$this->is_installed())
 		{
 			die('Error: APC extension not installed');
 		}
 	}
 
-	public function get ($name)
+	public function get($name)
 	{
+
 		return apc_fetch($name);
 	}
 
-	public function set ($name, $value, $ttl = 0)
+	public function set($name, $value, $ttl = 0)
 	{
+
 		return apc_store($name, $value, $ttl);
 	}
 
-	public function rm ($name)
+	public function rm($name)
 	{
+
 		return apc_delete($name);
 	}
 
 	protected function is_installed()
 	{
+
 		return function_exists('apc_fetch');
 	}
 }
 
 class cache_memcached extends cache_common
 {
+
 	public $used = true;
 
 	protected $cfg = null;
@@ -80,8 +92,9 @@ class cache_memcached extends cache_common
 
 	protected $connected = false;
 
-	public function __construct ($cfg)
+	public function __construct($cfg)
 	{
+
 		if (!$this->is_installed())
 		{
 			die('Error: Memcached extension not installed');
@@ -91,8 +104,9 @@ class cache_memcached extends cache_common
 		$this->memcache = new Memcache();
 	}
 
-	protected function connect ()
+	protected function connect()
 	{
+
 		$connect_type = ($this->cfg['pconnect']) ? 'pconnect' : 'connect';
 		
 		if (@$this->memcache->$connect_type($this->cfg['host'], $this->cfg['port']))
@@ -111,8 +125,9 @@ class cache_memcached extends cache_common
 		}
 	}
 
-	public function get ($name)
+	public function get($name)
 	{
+
 		if (!$this->connected)
 		{
 			$this->connect();
@@ -120,18 +135,20 @@ class cache_memcached extends cache_common
 		return ($this->connected) ? $this->memcache->get($name) : false;
 	}
 
-	public function set ($name, $value, $ttl = 86400)
+	public function set($name, $value, $ttl = 86400)
 	{
+
 		if (!$this->connected)
 		{
 			$this->connect();
 		}
 		$ttl = ($ttl > 86400 || !$ttl) ? 86400 : intval($ttl);
-		return ($this->connected) ? $this->memcache->set($name, $value, MEMCACHE_COMPRESSED , $ttl) : false;
+		return ($this->connected) ? $this->memcache->set($name, $value, MEMCACHE_COMPRESSED, $ttl) : false;
 	}
 
-	public function rm ($name)
+	public function rm($name)
 	{
+
 		if (!$this->connected)
 		{
 			$this->connect();
@@ -141,6 +158,7 @@ class cache_memcached extends cache_common
 
 	protected function is_installed()
 	{
+
 		return class_exists('Memcache');
 	}
 
@@ -148,20 +166,23 @@ class cache_memcached extends cache_common
 
 class cache_sqlite extends cache_common
 {
+
 	public $used = true;
 
 	protected $cfg = array();
 
 	protected $db = null;
 
-	public function __construct ($cfg)
+	public function __construct($cfg)
 	{
+
 		$this->cfg = array_merge($this->cfg, $cfg);
 		$this->db = new sqlite_common($cfg);
 	}
 
-	public function get ($name)
+	public function get($name)
 	{
+
 		$result = $this->db->query("
 			SELECT cache_value
 			FROM " . $this->cfg['table_name'] . "
@@ -173,8 +194,9 @@ class cache_sqlite extends cache_common
 		return ($result and $cache_value = sqlite_fetch_single($result)) ? unserialize($cache_value) : false;
 	}
 
-	public function set ($name, $value, $ttl = 86400)
+	public function set($name, $value, $ttl = 86400)
 	{
+
 		$name = sqlite_escape_string($name);
 		$expire = TIMENOW + $ttl;
 		$value = sqlite_escape_string(serialize($value));
@@ -189,8 +211,9 @@ class cache_sqlite extends cache_common
 		return (bool)$result;
 	}
 
-	public function rm ($name)
+	public function rm($name)
 	{
+
 		$result = $this->db->query("
 			DELETE FROM " . $this->cfg['table_name'] . "
 			WHERE cache_name = '" . sqlite_escape_string($name) . "'
@@ -199,8 +222,9 @@ class cache_sqlite extends cache_common
 		return (bool)$result;
 	}
 
-	public function gc ($expire_time = TIMENOW)
+	public function gc($expire_time = TIMENOW)
 	{
+
 		$result = $this->db->query("
 			DELETE FROM " . $this->cfg['table_name'] . "
 			WHERE cache_expire_time < $expire_time
@@ -212,17 +236,20 @@ class cache_sqlite extends cache_common
 
 class cache_file extends cache_common
 {
+
 	public $used = true;
 
 	protected $dir = null;
 
-	public function __construct ($dir)
+	public function __construct($dir)
 	{
+
 		$this->dir = $dir;
 	}
 
-	public function get ($name)
+	public function get($name)
 	{
+
 		$filename = $this->dir . $name . '.php';
 		
 		if (file_exists($filename))
@@ -233,8 +260,9 @@ class cache_file extends cache_common
 		return (!empty($filecache['value'])) ? $filecache['value'] : false;
 	}
 
-	public function set ($name, $value, $ttl = 86400)
+	public function set($name, $value, $ttl = 86400)
 	{
+
 		if (!function_exists('var_export'))
 		{
 			return false;
@@ -242,7 +270,11 @@ class cache_file extends cache_common
 		
 		$filename = $this->dir . $name . '.php';
 		$expire = TIMENOW + $ttl;
-		$cache_data = array('expire'=>$expire, 'value'=>$value);
+		$cache_data = array(
+			
+					'expire' => $expire,
+					'value' => $value
+		);
 		
 		$filecache = "<?php\n";
 		$filecache .= '$filecache = ' . var_export($cache_data, true) . ";\n";
@@ -251,8 +283,9 @@ class cache_file extends cache_common
 		return (bool)file_write($filecache, $filename, false, true, true);
 	}
 
-	public function rm ($name)
+	public function rm($name)
 	{
+
 		$filename = $this->dir . $name . '.php';
 		if (file_exists($filename))
 		{
@@ -261,8 +294,9 @@ class cache_file extends cache_common
 		return false;
 	}
 
-	public function gc ($expire_time = TIMENOW)
+	public function gc($expire_time = TIMENOW)
 	{
+
 		$dir = $this->dir;
 		
 		if (is_dir($dir))
@@ -275,6 +309,11 @@ class cache_file extends cache_common
 					{
 						$filename = $dir . $file;
 						
+						if (!file_exists($filename))
+						{
+							continue;
+						}
+						
 						include ($filename);
 						
 						if (empty($filecache['expire']) or ($filecache['expire'] < $expire_time))
@@ -285,7 +324,7 @@ class cache_file extends cache_common
 				}
 				closedir($dh);
 			}
-		}		
+		}
 		return;
 	}
 }
