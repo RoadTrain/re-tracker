@@ -309,12 +309,7 @@ class cache_file extends cache_common
 					{
 						$filename = $dir . $file;
 						
-						if (!file_exists($filename))
-						{
-							continue;
-						}
-						
-						include ($filename);
+						require_once ($filename);
 						
 						if (empty($filecache['expire']) or ($filecache['expire'] < $expire_time))
 						{
