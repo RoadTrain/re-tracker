@@ -2,7 +2,6 @@
 
 class cache_common
 {
-
 	public $used = false;
 
 	/**
@@ -10,7 +9,6 @@ class cache_common
 	 */
 	public function get($name)
 	{
-
 		return false;
 	}
 
@@ -19,7 +17,6 @@ class cache_common
 	 */
 	public function set($name, $value, $ttl = 86400)
 	{
-
 		return false;
 	}
 
@@ -28,7 +25,6 @@ class cache_common
 	 */
 	public function rm($name)
 	{
-
 		return false;
 	}
 
@@ -37,19 +33,16 @@ class cache_common
 	 */
 	public function gc()
 	{
-
 		return false;
 	}
 }
 
 class cache_apc extends cache_common
 {
-
 	public $used = true;
 
 	public function __construct()
 	{
-
 		if (!$this->is_installed())
 		{
 			die('Error: APC extension not installed');
@@ -58,32 +51,27 @@ class cache_apc extends cache_common
 
 	public function get($name)
 	{
-
 		return apc_fetch($name);
 	}
 
 	public function set($name, $value, $ttl = 0)
 	{
-
 		return apc_store($name, $value, $ttl);
 	}
 
 	public function rm($name)
 	{
-
 		return apc_delete($name);
 	}
 
 	protected function is_installed()
 	{
-
 		return function_exists('apc_fetch');
 	}
 }
 
 class cache_memcached extends cache_common
 {
-
 	public $used = true;
 
 	protected $cfg = null;
@@ -94,7 +82,6 @@ class cache_memcached extends cache_common
 
 	public function __construct($cfg)
 	{
-
 		if (!$this->is_installed())
 		{
 			die('Error: Memcached extension not installed');
@@ -106,7 +93,6 @@ class cache_memcached extends cache_common
 
 	protected function connect()
 	{
-
 		$connect_type = ($this->cfg['pconnect']) ? 'pconnect' : 'connect';
 		
 		if (@$this->memcache->$connect_type($this->cfg['host'], $this->cfg['port']))
@@ -127,7 +113,6 @@ class cache_memcached extends cache_common
 
 	public function get($name)
 	{
-
 		if (!$this->connected)
 		{
 			$this->connect();
@@ -137,7 +122,6 @@ class cache_memcached extends cache_common
 
 	public function set($name, $value, $ttl = 86400)
 	{
-
 		if (!$this->connected)
 		{
 			$this->connect();
@@ -148,7 +132,6 @@ class cache_memcached extends cache_common
 
 	public function rm($name)
 	{
-
 		if (!$this->connected)
 		{
 			$this->connect();
@@ -158,7 +141,6 @@ class cache_memcached extends cache_common
 
 	protected function is_installed()
 	{
-
 		return class_exists('Memcache');
 	}
 
@@ -166,7 +148,6 @@ class cache_memcached extends cache_common
 
 class cache_sqlite extends cache_common
 {
-
 	public $used = true;
 
 	protected $cfg = array();
@@ -182,7 +163,6 @@ class cache_sqlite extends cache_common
 
 	public function get($name)
 	{
-
 		$result = $this->db->query("
 			SELECT cache_value
 			FROM " . $this->cfg['table_name'] . "
@@ -196,7 +176,6 @@ class cache_sqlite extends cache_common
 
 	public function set($name, $value, $ttl = 86400)
 	{
-
 		$name = sqlite_escape_string($name);
 		$expire = TIMENOW + $ttl;
 		$value = sqlite_escape_string(serialize($value));
@@ -213,7 +192,6 @@ class cache_sqlite extends cache_common
 
 	public function rm($name)
 	{
-
 		$result = $this->db->query("
 			DELETE FROM " . $this->cfg['table_name'] . "
 			WHERE cache_name = '" . sqlite_escape_string($name) . "'
@@ -224,7 +202,6 @@ class cache_sqlite extends cache_common
 
 	public function gc($expire_time = TIMENOW)
 	{
-
 		$result = $this->db->query("
 			DELETE FROM " . $this->cfg['table_name'] . "
 			WHERE cache_expire_time < $expire_time
@@ -236,20 +213,17 @@ class cache_sqlite extends cache_common
 
 class cache_file extends cache_common
 {
-
 	public $used = true;
 
 	protected $dir = null;
 
 	public function __construct($dir)
 	{
-
 		$this->dir = $dir;
 	}
 
 	public function get($name)
 	{
-
 		$filename = $this->dir . $name . '.php';
 		
 		if (file_exists($filename))
@@ -262,7 +236,6 @@ class cache_file extends cache_common
 
 	public function set($name, $value, $ttl = 86400)
 	{
-
 		if (!function_exists('var_export'))
 		{
 			return false;
@@ -285,7 +258,6 @@ class cache_file extends cache_common
 
 	public function rm($name)
 	{
-
 		$filename = $this->dir . $name . '.php';
 		if (file_exists($filename))
 		{
@@ -296,7 +268,6 @@ class cache_file extends cache_common
 
 	public function gc($expire_time = TIMENOW)
 	{
-
 		$dir = $this->dir;
 		
 		if (is_dir($dir))
