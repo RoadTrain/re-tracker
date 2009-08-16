@@ -203,27 +203,67 @@ function tr_list($tr_ary)
 
 function get_trackers()
 {
-	global $cache, $cfg;
+	global $cache, $cfg, $db;
 
-	$trackers = $cache->get('trackers');
+	$trackers = $cache->get('new_trackers');
 	if (!empty($trackers))
 	{
 		return $trackers;
 	}
+	
+	$file = NULL;
 
-	$file = @file_get_contents($cfg['TRACKERS_URL']);
-	$file = iconv("UTF-16", "CP1251", $file);
+	if($cfg['TRACKERS_URL'])
+	{
+		$file = @file_get_contents($cfg['TRACKERS_URL']);
+		$file = iconv("UTF-16", "CP1251", $file);
+	}
 
+	$filepath = $cfg['cache']['filecache']['path']."trackers.list";
 	if($file)
 	{
-		$filepath = $cfg['cache']['filecache']['path']."trackers.list";
-
 		file_put_contents($filepath, $file);
-		$trackers = parse_ini_file($filepath, true);
-		@unlink($filepath);
-
-		$trackers_cached = $cache->set('trackers', $trackers, TRACKERS_CACHE_EXPIRE);
 	}
+	else
+	{
+		$trackers = array();
+		$citys = GetCitys();
+		$trackers["city"][] = '[Город]';
+		$trackers["city"][] = 'Количество='.sizeof($citys);
+		$i = $j = $k = 0;
+		foreach ($citys as $id_city => $city)
+		{
+			$i++;
+			$city_name = iconv("UTF-8","CP1251",$city);
+			$trackers["city"][] = $i."=".$city_name;
+			$isps = GetProviders($id_city);
+			$trackers["isp_".$id_city][] = '[Провайдеры '.$city_name.']';
+			$trackers["isp_".$id_city][] = 'Количество='.sizeof($isps);
+			$j = 0;
+			foreach ($isps as $id_isp => $isp) {
+				$j++;
+				$isp_name = iconv("UTF-8","CP1251",$isp);
+				$trackers["isp_".$id_city][] = $j.'='.$isp_name;
+				$retrackers = GetRetrackers($id_city,$id_isp);
+				$trackers["ret_".$id_city.'_'.$id_isp][] = '[Ретрекеры '.$city_name.' '.$isp_name.']';
+				$trackers["ret_".$id_city.'_'.$id_isp][] = 'Количество='.sizeof($retrackers);
+				$k = 0;
+				foreach ($retrackers as $id_ret => $ret) {
+					$k++;
+					$trackers["ret_".$id_city.'_'.$id_isp][] = $k.'='.iconv("UTF-8","CP1251",$ret['retracker']);
+				}
+			}
+		}
+		$out = '';
+		foreach ($trackers as $key => $list) {
+			$out .= implode("\r\n",$trackers[$key])."\r\n\r\n";
+		}
+		file_put_contents($filepath, $out);
+		$cache->set('trackers_list', iconv("CP1251","UTF-16",$out), TRACKERS_CACHE_EXPIRE);
+	}
+	$trackers = parse_ini_file($filepath, true);
+	@unlink($filepath);
+	$cache->set('new_trackers', $trackers, TRACKERS_CACHE_EXPIRE);
 	return $trackers;
 }
 
@@ -615,4 +655,125 @@ function debug($text, $die= true, $tofile= false)
         else
         echo $text;
     }
+}
+
+/**
+ *  Ассоциирует значения массива по содержимому указаного поля.
+ *  Порядок элементов сохраняется.
+ *  @access public
+ *  @param string $field Название существующего в массиве поля
+ *  @param array $array Неассоциированный массив
+ *  @return array Ассоциированный массив
+ */
+function assoc($field, $array) {
+
+	$array = (array)$array;
+
+	if (!sizeof($array)||key($array)===false) return $array;
+
+	$result = array();
+	foreach ($array as $row)
+		$result[$row[$field]] = $row;
+
+	unset($array, $row);
+
+	return $result;
+}
+
+function GetCitys($from_cache = true)
+{
+	global $db, $cache, $cfg;
+	
+	$out = $cache->get("citys");
+	if(!empty($out) && $from_cache) {
+		return $out;
+	} else {
+		$out = array();
+	}
+	$db->query("SET NAMES utf8");
+	$list = $db->fetch_rowset("SELECT `id`,`name` FROM `tracker_city` ORDER BY `name` ASC");
+	$db->query("SET NAMES cp1251");
+	foreach ($list as $row)
+	{
+		if ($row['name'])
+		{
+			$out[$row['id']] = $row['name'];
+		}
+	}
+	$from_cache?$cache->set("citys",$out,TRACKERS_CACHE_EXPIRE):FALSE;
+	return $out;
+}
+
+function GetProviders($by_city = null, $from_cache = true)
+{
+	global $db, $cache, $cfg;
+	
+	$cache_tag = $cache->get("providers_tag");
+	if (empty($cache_tag)){
+		$cache_tag = time();
+		$cache->set("providers_tag",$cache_tag,86400);
+	}
+	
+	$cache_key = md5($cache_tag."providers_".$by_city);
+	$out = $cache->get($cache_key);
+	if(!empty($out) && $from_cache) {
+		return $out;
+	} else {
+		$out = array();
+	}
+	
+	$citys = GetCitys();
+	$db->query("SET NAMES utf8");
+	if ($by_city !== NULL && isset($citys[$by_city]))
+	{
+		$list = $db->fetch_rowset("SELECT DISTINCT(`tracker_provider`.`id`),`tracker_provider`.`name` FROM `tracker_provider`,`tracker_retrackers` WHERE `tracker_provider`.`id`=`tracker_retrackers`.`id_prov` AND `tracker_retrackers`.`id_city`=" . intval($by_city));
+	}
+	else
+	{
+		$list = $db->fetch_rowset("SELECT `id`,`name` FROM `tracker_provider` ORDER BY `name` ASC");
+	}
+	$db->query("SET NAMES cp1251");
+	
+	foreach ($list as $row)
+	{
+		$out[$row['id']] = $row['name'];
+	}
+	
+	$from_cache?$cache->set($cache_key,$out,TRACKERS_CACHE_EXPIRE):FALSE;
+	return $out;
+}
+
+function GetRetrackers($by_city=null, $by_prov=null, $from_cache = true)
+{
+	global $db, $cache, $cfg;
+
+	$by_prov = intval($by_prov);
+	$by_city = intval($by_city);
+	
+	$cache_tag = $cache->get("retrackers_tag");
+	if (empty($cache_tag)){
+		$cache_tag = time();
+		$cache->set("retrackers_tag",$cache_tag,86400);
+	}
+	
+	$cache_key = md5($cache_tag."retrackers_".$by_city."_".$by_prov);
+	$list = $cache->get($cache_key);
+	if(!empty($list) && $from_cache) {
+		return $list;
+	} else {
+		$list = array();
+	}
+	
+	$provs = GetProviders();
+	if(!isset($provs[$by_prov])) {
+		return array();
+	}
+	
+	$db->query("SET NAMES utf8");
+	$list = $db->fetch_rowset("SELECT * FROM `tracker_retrackers` WHERE ".($by_city>0?"`id_city`=".$by_city." AND ":"").($by_prov>0?"`id_prov`=".$by_prov." AND ":"")."`allow`=1 ORDER BY `retracker` ASC");
+	$db->query("SET NAMES cp1251");
+	$list[] = array("retracker"=>"http://re-tracker.ru:80/announce.php");
+	
+	$from_cache?$cache->set($cache_tag,$list,TRACKERS_CACHE_EXPIRE):FALSE;
+	return $list;
 }
