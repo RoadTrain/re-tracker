@@ -97,7 +97,7 @@ function drop_fast_announce($lp_info)
 function msg_die($msg)
 {
 	$output = bencode(array(
-		'min interval'   => (int) 60, 
+		'min interval'   => (int) 60,
 		'failure reason' => (string) $msg
 	));
 	
@@ -107,8 +107,8 @@ function msg_die($msg)
 function dummy_exit($interval = 60)
 {
 	$output = bencode(array(
-		'interval'     => (int) $interval, 
-		'min interval' => (int) $interval, 
+		'interval'     => (int) $interval,
+		'min interval' => (int) $interval,
 		'peers'        => (string) DUMMY_PEER
 	));
 	
@@ -134,12 +134,12 @@ function encode_ip ($dotquad_ip)
 
 function decode_ip ($int_ip)
 {
-	if (strlen($int_ip) == 32) 
+	if (strlen($int_ip) == 32)
 	{
 		$int_ip = substr(chunk_split($int_ip, 4, ':'), 0, 39);
 		$int_ip = ':'. implode(':', array_map("hexhex", explode(':',$int_ip))) .':';
 		preg_match_all("/(:0)+/", $int_ip, $zeros);
-		if (count($zeros[0]) > 0) 
+		if (count($zeros[0]) > 0)
 		{
 			$match = '';
 			foreach($zeros[0] as $zero)
@@ -528,7 +528,8 @@ class mysql_common
 
 	function escape ($str)
 	{
-		return mysql_escape_string($str);
+		if (!is_resource($this->dbh)) $this->init();
+		return mysql_real_escape_string($str,$this->dbh);
 	}
 
 	function get_error_msg ()

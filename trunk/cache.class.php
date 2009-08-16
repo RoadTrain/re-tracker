@@ -127,7 +127,7 @@ class cache_memcached extends cache_common
 			$this->connect();
 		}
 		$ttl = ($ttl > 86400 || !$ttl) ? 86400 : intval($ttl);
-		return ($this->connected) ? $this->memcache->set($name, $value, MEMCACHE_COMPRESSED, $ttl) : false;
+		return ($this->connected) ? $this->memcache->set($name, $value, FALSE, $ttl) : false;
 	}
 
 	public function rm($name)
@@ -156,7 +156,7 @@ class cache_sqlite extends cache_common
 
 	public function __construct($cfg)
 	{
-
+		
 		$this->cfg = array_merge($this->cfg, $cfg);
 		$this->db = new sqlite_common($cfg);
 	}

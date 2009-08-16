@@ -33,3 +33,35 @@ CREATE TABLE IF NOT EXISTS `tracker_stats` (
   KEY `leechers` (`leechers`),
   FULLTEXT KEY `name` (`name`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `tracker_city`;
+CREATE TABLE IF NOT EXISTS `tracker_city` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `tracker_provider`;
+CREATE TABLE IF NOT EXISTS `tracker_provider` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `tracker_retrackers`;
+CREATE TABLE IF NOT EXISTS `tracker_retrackers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_city` int(11) NOT NULL,
+  `id_prov` int(11) NOT NULL,
+  `date` int(11) NOT NULL,
+  `retracker` varchar(255) NOT NULL,
+  `allow` int(11) NOT NULL DEFAULT '0',
+  `new_retracker` varchar(255) NOT NULL,
+  `uid` varchar(255) NOT NULL,
+  `email` varchar(50) NOT NULL,
+  `key` varchar(32) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_city` (`id_city`,`id_prov`,`retracker`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
