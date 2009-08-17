@@ -70,7 +70,6 @@ function AddRetracker($city, $isp, $retracker, $email) {
 	
 	$mail = new ml_Mail("ru.retracker@gmail.com");
 	$mail->make("Re-racker.ru: Добавление ретрекера",$message);
-	$mail->send($email);
 	
 	return $mail->send($email)?"OK":"При отправке уведомления произошла ошибка, попробуйте добавить ретрекер ещё раз или свяжитесь с админимтрацией.";
 }
