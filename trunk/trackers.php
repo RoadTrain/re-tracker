@@ -69,7 +69,7 @@ function AddRetracker($city, $isp, $retracker, $email) {
 	ob_clean();
 	
 	$mail = new ml_Mail("ru.retracker@gmail.com");
-	$mail->make("Re-racker.ru: Добавление ретрекера",$message);
+	$mail->make("Re-Tracker.ru: Добавление ретрекера",$message);
 	
 	return $mail->send($email)?"OK":"При отправке уведомления произошла ошибка, попробуйте добавить ретрекер ещё раз или свяжитесь с админимтрацией.";
 }
@@ -206,6 +206,9 @@ function SaveChanges(save) {
 	$.post('trackers.php',{save:save,city:$('#city').val(),isp:$('#isp').val(),retracker:$('#new').val(),eml:$('#eml').val()},function(data){
 		alert(data);
 		$('#butt_'+save).removeAttr("disabled");
+		$('#city').val('0');
+		$('#isp').val('0');
+		$('#retracker').hide('fast');
 		});
 	} else if(save==3) {
 		$.post('trackers.php',{save:save,eml:$('#eml3').val(),code:$('#code').val()},function(data){
