@@ -164,9 +164,11 @@ function city_select($selected_id = 0)
 {
 	$out = '';
 
+	$i=0;
 	foreach (GetCitys() as $id => $name)
 	{
-		$out .= "<option value=\"$id\"". (($id == $selected_id) ? " selected=\"selected\"" : '') .">".
+		$i++;
+		$out .= "<option value=\"$i\"". (($i == $selected_id) ? " selected=\"selected\"" : '') .">".
 		$name.
 		"</option>\n";
 	}
@@ -176,10 +178,12 @@ function city_select($selected_id = 0)
 
 function isp_select($city=0, $selected_id = 0)
 {
-	$out = '';
+	$out = '<option value="0">&raquo; Select ISP</option>';
+	$i=0;
 	foreach (GetProviders($city) as $id => $name)
 	{
-		$out .= "<option value=\"$id\"". (($id == $selected_id) ? " selected=\"selected\"" : '') .">".
+		$i++;
+		$out .= "<option value=\"$i\"". (($i == $selected_id) ? " selected=\"selected\"" : '') .">".
 		$name ."</option>\n";
 	}
 
@@ -210,7 +214,7 @@ function get_trackers()
 	
 	$file = NULL;
 
-	if(0 && $cfg['TRACKERS_URL'])
+	if($cfg['TRACKERS_URL'])
 	{
 		$file = @file_get_contents($cfg['TRACKERS_URL']);
 		$file = iconv("UTF-16", "CP1251", $file);
@@ -689,7 +693,7 @@ function GetCitys($from_cache = true)
 		$out = array();
 	}
 	$db->query("SET NAMES utf8");
-	$list = $db->fetch_rowset("SELECT `id`,`name` FROM `tracker_city` ORDER BY `name` ASC");
+	$list = $db->fetch_rowset("SELECT `id`,`name` FROM `tracker_city` ORDER BY `id` ASC");
 	$db->query("SET NAMES cp1251");
 	foreach ($list as $row)
 	{
@@ -724,11 +728,11 @@ function GetProviders($by_city = null, $from_cache = true)
 	$db->query("SET NAMES utf8");
 	if ($by_city !== NULL && isset($citys[$by_city]))
 	{
-		$list = $db->fetch_rowset("SELECT DISTINCT(`tracker_provider`.`id`),`tracker_provider`.`name` FROM `tracker_provider`,`tracker_retrackers` WHERE `tracker_provider`.`id`=`tracker_retrackers`.`id_prov` AND `tracker_retrackers`.`id_city`=" . intval($by_city));
+		$list = $db->fetch_rowset("SELECT DISTINCT(`tracker_provider`.`id`),`tracker_provider`.`name` FROM `tracker_provider`,`tracker_retrackers` WHERE `tracker_provider`.`id`=`tracker_retrackers`.`id_prov` AND `tracker_retrackers`.`id_city`=" . intval($by_city)." ORDER BY `tracker_provider`.`id` ASC");
 	}
 	else
 	{
-		$list = $db->fetch_rowset("SELECT `id`,`name` FROM `tracker_provider` ORDER BY `name` ASC");
+		$list = $db->fetch_rowset("SELECT `id`,`name` FROM `tracker_provider` ORDER BY `id` ASC");
 	}
 	$db->query("SET NAMES cp1251");
 	
@@ -768,7 +772,7 @@ function GetRetrackers($by_city=null, $by_prov=null, $from_cache = true)
 	}
 	
 	$db->query("SET NAMES utf8");
-	$list = $db->fetch_rowset("SELECT * FROM `tracker_retrackers` WHERE ".($by_city>0?"`id_city`=".$by_city." AND ":"").($by_prov>0?"`id_prov`=".$by_prov." AND ":"")."`allow`=1 ORDER BY `retracker` ASC");
+	$list = $db->fetch_rowset("SELECT * FROM `tracker_retrackers` WHERE ".($by_city>0?"`id_city`=".$by_city." AND ":"").($by_prov>0?"`id_prov`=".$by_prov." AND ":"")."`allow`=1 ORDER BY `id` ASC");
 	$db->query("SET NAMES cp1251");
 	$list[] = array("retracker"=>"http://re-tracker.ru:80/announce.php");
 	
