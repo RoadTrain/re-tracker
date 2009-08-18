@@ -1,6 +1,6 @@
 <?php
 
-ini_set("display_errors","On");
+ini_set("display_errors","Off");
 
 include_once (dirname(realpath(__FILE__)).'/common.php');
 include_once (dirname(realpath(__FILE__)).'/functions.php');
@@ -16,10 +16,10 @@ if (get_magic_quotes_gpc())
 }
 
 $trackers = get_trackers();
-
 if (isset($_GET['isp_list']) AND $city = intval($_GET['isp_list']))
 {
-	echo iconv('CP1251', 'UTF-8', isp_select($trackers['Провайдеры '. $trackers['Город'][$city]]));
+	header('Content-Type: text/html; charset=windows-1251', true);
+	echo iconv('UTF-8', 'CP1251', isp_select($city,0));
 	exit;
 }
 
@@ -260,7 +260,7 @@ if($city)
 	if(!isset($trackers['Провайдеры '. $trackers['Город'][$city]]))
 	{
 		$city = 2; //Moscow
-		$isp = 1; //Corbina
+		$isp = 60; //Corbina
 	}
 }
 
@@ -335,10 +335,11 @@ if($city)
 					<p class="select">
 						<select name="city" id="city" onchange="if(this.value>0) $('#isp').load('torrents.php?isp_list='+$('#city').val());">
 							<option value="0">&raquo; Выберите город</option>
-							<?=city_select($trackers['Город'], $city);?>
+							<?=iconv('UTF-8', 'CP1251', city_select($city));?>
 						</select>
 						<select name="isp" id="isp">
-							<?=isp_select($city ? $trackers['Провайдеры '. $trackers['Город'][$city]] : array(), $isp);?>
+							<option value="0">&raquo; Выберите провайдера</option>
+							<?=iconv('UTF-8', 'CP1251', isp_select($city, $isp));?>
 						</select>
 					</p>
 				</div>
