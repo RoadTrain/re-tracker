@@ -260,7 +260,7 @@ if($city)
 	if(!isset($trackers['Провайдеры '. $trackers['Город'][$city]]))
 	{
 		$city = 2; //Moscow
-		$isp = 60; //Corbina
+		$isp = 1; //Corbina
 	}
 }
 
