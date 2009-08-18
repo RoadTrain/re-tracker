@@ -160,30 +160,27 @@ function is_url($url)
     return true;
 }
 
-function city_select($city_ary, $selected_id = 0)
+function city_select($selected_id = 0)
 {
 	$out = '';
 
-	for ($i=1; $i <= ($city_ary['Количество']); $i++)
+	foreach (GetCitys() as $id => $name)
 	{
-		$out .= "<option value=\"$i\"". (($i == $selected_id) ? " selected=\"selected\"" : '') .">".
-		$city_ary[$i].
+		$out .= "<option value=\"$id\"". (($id == $selected_id) ? " selected=\"selected\"" : '') .">".
+		$name.
 		"</option>\n";
 	}
 
 	return $out;
 }
 
-function isp_select($isp_ary, $selected_id = 0)
+function isp_select($city=0, $selected_id = 0)
 {
-	$out = '<option value="0">&raquo; Выберите провайдера</option>';
-	if(!sizeof($isp_ary)) {
-		return $out;
-	}
-	for ($i=1; $i <= ($isp_ary['Количество']); $i++)
+	$out = '';
+	foreach (GetProviders($city) as $id => $name)
 	{
-		$out .= "<option value=\"$i\"". (($i == $selected_id) ? " selected=\"selected\"" : '') .">".
-		$isp_ary[$i] ."</option>\n";
+		$out .= "<option value=\"$id\"". (($id == $selected_id) ? " selected=\"selected\"" : '') .">".
+		$name ."</option>\n";
 	}
 
 	return $out;
@@ -213,7 +210,7 @@ function get_trackers()
 	
 	$file = NULL;
 
-	if($cfg['TRACKERS_URL'])
+	if(0 && $cfg['TRACKERS_URL'])
 	{
 		$file = @file_get_contents($cfg['TRACKERS_URL']);
 		$file = iconv("UTF-16", "CP1251", $file);
@@ -228,6 +225,7 @@ function get_trackers()
 	{
 		$trackers = array();
 		$citys = GetCitys();
+		
 		$trackers["city"][] = '[Город]';
 		$trackers["city"][] = 'Количество='.sizeof($citys);
 		$i = $j = $k = 0;

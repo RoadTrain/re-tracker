@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Europe/Moscow');
 
 define('TIMESTART', utime());
 define('TIMENOW', time());
