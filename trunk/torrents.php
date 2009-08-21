@@ -15,7 +15,6 @@ if (get_magic_quotes_gpc())
 	array_deep($_REQUEST, 'stripslashes');
 }
 
-$trackers = get_trackers();
 if (isset($_GET['isp_list']) AND $city = intval($_GET['isp_list']))
 {
 	header('Content-Type: text/html; charset=windows-1251', true);
@@ -250,20 +249,6 @@ switch($sort)
 
 $admin = (isset($_REQUEST['adm']) AND $_REQUEST['adm']) ? true : false;
 setcookie('adm', $admin, TIMENOW + $search_opt_keep);
-
-if($city)
-{
-	if(!isset($trackers['Город'][$city]))
-	{
-		 $city = 2;
-	}
-	if(!isset($trackers['Провайдеры '. $trackers['Город'][$city]]))
-	{
-		$city = 2; //Moscow
-		$isp = 1; //Corbina
-	}
-}
-
 ?>
 
 <form method="GET" name="post" action="torrents.php?<?=SID;?>">
@@ -338,7 +323,6 @@ if($city)
 							<?=iconv('UTF-8', 'CP1251', city_select($city));?>
 						</select>
 						<select name="isp" id="isp">
-							<option value="0">&raquo; Выберите провайдера</option>
 							<?=iconv('UTF-8', 'CP1251', isp_select($city, $isp));?>
 						</select>
 					</p>
