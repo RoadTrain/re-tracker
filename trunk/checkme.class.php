@@ -170,6 +170,10 @@ class CheckMe
 	{
 		global $db;
 		
+//		if (detect_encoding($name)=='windows-1251') {
+//			$name = iconv("windows-1251","utf-8",$name);
+//		}
+		
 		$name = $db->escape(trim($name));
 		$sql = "UPDATE `tracker_stats` SET
 					" . ($name ? "name = '" . $name . "'," : "") . "

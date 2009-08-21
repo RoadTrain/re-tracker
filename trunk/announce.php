@@ -1,11 +1,12 @@
 <?php
 ini_set("display_errors", "Off");
+ini_set("log_errors", "Off");
 
 if (0)
 {
 	$query = http_build_query($_GET);
 	header("HTTP/1.1 301 Moved Permanently");
-	header("Location: http://human.roadtrain.ru/retracker/announce.php?$query");
+	header("Location: http://open.tracker.thepiratebay.org:80/announce?$query");
 	exit();
 }
 
@@ -138,8 +139,14 @@ if ($event === 'stopped')
 	die();
 }
 
-// Escape strings
+// Escape strings.
+//if (detect_encoding($name)=='windows-1251') {
+//	$name = iconv("windows-1251","utf-8",$name);
+//}
 $name = $db->escape($name);
+//if (detect_encoding($comment)=='windows-1251') {
+//	$comment = iconv("windows-1251","utf-8",$comment);
+//}
 $comment = $db->escape($comment);
 
 $torrent_id = isset($lp_info['torrent_id']) ? $lp_info['torrent_id'] : 0;
