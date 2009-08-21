@@ -71,7 +71,7 @@ if (empty($_SESSION['resume']) || !isset($_REQUEST['act']))
 			<p class="select">
 				<select name="city" id="city" onchange="$('#isp').load('torrents.php?isp_list='+$('#city').val());">
 					<option value="0">&raquo; Выберите город</option>
-					<?=city_select($trackers['Город'], $city);?>
+					<?=iconv('UTF-8', 'CP1251', city_select($trackers['Город'], $city));?>
 				</select>
 				<select name="isp" id="isp"
 				onchange="$('#tr').load('resume.php?tr_list=1&city='+$('#city').val()+'&isp='+$('#isp').val());">

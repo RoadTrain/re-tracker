@@ -181,6 +181,21 @@ function str_compact($str)
 	return preg_replace('#\s+#', ' ', trim($str));
 }
 
+function detect_encoding($string)
+{
+	static $list = array('utf-8', 'windows-1251');
+ 
+	foreach ($list as $item)
+	{
+    	$sample = iconv($item, $item, $string);
+    	if (md5($sample) == md5($string))
+    	{
+      		return $item;
+    	}
+  	}
+  	return null;
+}
+
 function dbg_log($str, $file)
 {
 	if (!DBG_LOG)
