@@ -205,9 +205,8 @@ function tr_list($tr_ary)
 function get_trackers()
 {
 	global $cache, $cfg, $db;
-
 	$trackers = $cache->get('new_trackers');
-	if (!empty($trackers))
+	if (!empty($trackers) && sizeof($trackers)>3)
 	{
 		return $trackers;
 	}
@@ -224,35 +223,47 @@ function get_trackers()
 	if($file)
 	{
 		file_put_contents($filepath, $file);
+		$trackers = parse_ini_file($filepath, TRUE);
+		@unlink($filepath);
 	}
 	else
 	{
 		$trackers = array();
 		$citys = GetCitys();
+		$array = array();
 		
+		$trackers["city"][] = '; Created '.date("d.m.Y");
+		$trackers["city"][] = '';
 		$trackers["city"][] = '[Город]';
 		$trackers["city"][] = 'Количество='.sizeof($citys);
+		$array['Город']["Количество"] = sizeof($citys);
 		$i = $j = $k = 0;
 		foreach ($citys as $id_city => $city)
 		{
 			$i++;
 			$city_name = iconv("UTF-8","CP1251",$city);
 			$trackers["city"][] = $i."=".$city_name;
+			$array['Город'][$i] = $city_name;
 			$isps = GetProviders($id_city);
 			$trackers["isp_".$id_city][] = '[Провайдеры '.$city_name.']';
 			$trackers["isp_".$id_city][] = 'Количество='.sizeof($isps);
+			$array['Провайдеры '.$city_name.'']["Количество"] = sizeof($isps);
 			$j = 0;
 			foreach ($isps as $id_isp => $isp) {
 				$j++;
 				$isp_name = iconv("UTF-8","CP1251",$isp);
 				$trackers["isp_".$id_city][] = $j.'='.$isp_name;
+				$array['Провайдеры '.$city_name][$j] = $isp_name;
 				$retrackers = GetRetrackers($id_city,$id_isp);
 				$trackers["ret_".$id_city.'_'.$id_isp][] = '[Ретрекеры '.$city_name.' '.$isp_name.']';
 				$trackers["ret_".$id_city.'_'.$id_isp][] = 'Количество='.sizeof($retrackers);
+				$array['Ретрекеры '.$city_name.' '.$isp_name]["Количество"] = sizeof($retrackers);
 				$k = 0;
 				foreach ($retrackers as $id_ret => $ret) {
 					$k++;
-					$trackers["ret_".$id_city.'_'.$id_isp][] = $k.'='.iconv("UTF-8","CP1251",$ret['retracker']);
+					$ret_name = iconv("UTF-8","CP1251",$ret['retracker']);
+					$trackers["ret_".$id_city.'_'.$id_isp][] = $k.'='.$ret_name;
+					$array['Ретрекеры '.$city_name.' '.$isp_name][$k] = $ret_name;
 				}
 			}
 		}
@@ -260,11 +271,11 @@ function get_trackers()
 		foreach ($trackers as $key => $list) {
 			$out .= implode("\r\n",$trackers[$key])."\r\n\r\n";
 		}
+		$out = iconv("CP1251","UTF-16",$out);
 		file_put_contents($filepath, $out);
-		$cache->set('trackers_list', iconv("CP1251","UTF-16",$out), TRACKERS_CACHE_EXPIRE);
+		$cache->set('trackers_list', $out, TRACKERS_CACHE_EXPIRE);
+		$trackers = $array;
 	}
-	$trackers = parse_ini_file($filepath, true);
-	@unlink($filepath);
 	$cache->set('new_trackers', $trackers, TRACKERS_CACHE_EXPIRE);
 	return $trackers;
 }
