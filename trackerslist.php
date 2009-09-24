@@ -23,9 +23,10 @@ else
 		include_once (dirname(realpath(__FILE__)) . '/functions.php');
 		$citys = GetCitys();
 		$sql = array();
-		$sql[] = "--- Updated once of day";
-		$sql[] = "--- Last update: ".date("d.m.Y H:i");
-		$sql[] = "--- Codepage is UTF-8";
+		$sql[] = "-- Updated once of day";
+		$sql[] = "-- Last update: ".date("d.m.Y H:i");
+		$sql[] = "-- Codepage is UTF-8";
+		$sql[] = "";
 		$sql[] = "TRUNCATE TABLE `tracker_city`;";
 		
 		foreach ($citys as $id => $city)
