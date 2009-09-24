@@ -16,22 +16,9 @@ if (get_magic_quotes_gpc())
 
 switch ($cfg['cache_type'])
 {
-	case 'APC':
-		$cache = new cache_apc();
-		break;
-	
 	case 'memcached':
 		$cache = new cache_memcached($cfg['cache']['memcached']);
 		break;
-	
-	case 'sqlite':
-		$cache = new cache_sqlite($cfg['cache']['sqlite']);
-		break;
-	
-	case 'filecache':
-		$cache = new cache_file($cfg['cache']['filecache']['path']);
-		break;
-	
 	default:
 		$cache = new cache_common();
 }

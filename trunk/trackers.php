@@ -172,10 +172,10 @@ if(($city||$city_all) && !$isp) {
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 
-<link rel="stylesheet" href="./main.css?" type="text/css">
+<link rel="stylesheet" href="<?=$cfg['base_url'];?>main.css?" type="text/css">
 
-<script type="text/javascript" src="./jquery.pack.js?v=1"></script>
-<script type="text/javascript" src="./main.js?v=1"></script>
+<script type="text/javascript" src="<?=$cfg['base_url'];?>jquery.pack.js?v=1"></script>
+<script type="text/javascript" src="<?=$cfg['base_url'];?>main.js?v=1"></script>
 
 <title>Re-Tracker.ru :: Add or Edit your re-tracker</title>
 <style type="text/css">

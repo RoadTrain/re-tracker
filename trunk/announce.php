@@ -149,7 +149,7 @@ $name = $db->escape($name);
 //}
 $comment = $db->escape($comment);
 
-$torrent_id = isset($lp_info['torrent_id']) ? $lp_info['torrent_id'] : 0;
+$torrent_id = isset($lp_info['torrent_id']) ? (int)$lp_info['torrent_id'] : 0;
 
 if (!$torrent_id)
 {
@@ -165,7 +165,7 @@ if (!$torrent_id)
 	$db->query("INSERT INTO $tracker_stats
 				(info_hash, reg_time, update_time, name, size, comment)
 				VALUES
-				('$info_hash_hex', '" . TIMENOW . "', '" . TIMENOW . "', '$name', '$size', '$comment')
+				('$info_hash_hex', " . TIMENOW . ", " . TIMENOW . ", '$name', " . ($size ? $size : 0) . ", '$comment')
 				");
 	
 	$torrent_id = mysql_insert_id();
@@ -176,25 +176,27 @@ $isp = explode(' ', $isp);
 $ipv6 = ($iptype == 'ipv6') ? encode_ip($ip) : ((verify_ip($ipv6) == 'ipv6') ? encode_ip($ipv6) : null);
 $ipv4 = ($iptype == 'ipv4') ? encode_ip($ip) : ((verify_ip($ipv4) == 'ipv4') ? encode_ip($ipv4) : null);
 
-$sql_data = array(
-		'torrent_id' 	=> $torrent_id,
-		'peer_hash' 	=> $peer_hash,
-		'ip' 			=> $ipv4,
-		'ipv6' 			=> $ipv6,
-		'port' 			=> $port,
-		'seeder' 		=> $seeder,
-		'update_time' 	=> TIMENOW,
-		'city' 			=> !empty($isp[0]) ? $isp[0] : null,
-		'isp' 			=> !empty($isp[1]) ? $isp[1] : null
-);
+$columns = $values = array();
 
-$columns = $values = $dupdate = array();
+$columns[] = "`torrent_id`";
+$columns[] = "`peer_hash`";
+$columns[] = "`ip`";
+$columns[] = "`ipv6`";
+$columns[] = "`port`";
+$columns[] = "`seeder`";
+$columns[] = "`update_time`";
+$columns[] = "`city`";
+$columns[] = "`isp`";
 
-foreach ($sql_data as $column => $value)
-{
-	$columns[] = $column;
-	$values[] = "'" . $db->escape($value) . "'";
-}
+$values[] = (int)$torrent_id;
+$values[] = "'" . $db->escape($peer_hash) . "'";
+$values[] = "'" . $db->escape($ipv4) . "'";
+$values[] = "'" . $db->escape($ipv6) . "'";
+$values[] = (int)$port;
+$values[] = (int)$seeder;
+$values[] = TIMENOW;
+$values[] = !empty($isp[0]) ? (int)$isp[0] : 0;
+$values[] = !empty($isp[1]) ? (int)$isp[1] : 0;
 
 $columns_sql = implode(', ', $columns);
 $values_sql = implode(', ', $values);
@@ -254,15 +256,15 @@ if (!$output)
 			if (!empty($peer['ip']))
 			{
 				$peerset[] = array(
-						'ip' 	=> decode_ip($peer['ip']),
-						'port' 	=> intval($peer['port'])
+						'ip' => decode_ip($peer['ip']),
+						'port' => intval($peer['port'])
 				);
 			}
 			if (!empty($peer['ipv6']))
 			{
 				$peerset6[] = array(
-						'ip' 	=> decode_ip($peer['ipv6']),
-						'port' 	=> intval($peer['port'])
+						'ip' => decode_ip($peer['ipv6']),
+						'port' => intval($peer['port'])
 				);
 			}
 		}
@@ -270,7 +272,7 @@ if (!$output)
 	
 	$row = $db->fetch_row("SELECT SUM(seeder) AS seeders, COUNT(*) AS peers
 						   FROM $tracker
-						   WHERE torrent_id = '$torrent_id' ");
+						   WHERE torrent_id = " . (int)$torrent_id);
 	
 	$seeders = (int)$row['seeders'];
 	$peers = (int)$row['peers'];
@@ -281,19 +283,19 @@ if (!$output)
 					leechers    = $leechers,
 					update_time = '" . TIMENOW . "',
 					name        = IF(name = '', '$name', name),
-					size        = IF(size = '', '$size', size),
+					size        = IF(size = '', " . ((int)$size) . ", size),
 					comment     = IF(comment = '', '$comment', comment)
 				 WHERE torrent_id = $torrent_id
 				") or msg_die("MySQL error: " . mysql_error() . ' line ' . __LINE__);
 	
 	// Generate output
 	$output = array(
-			'interval' 		=> (int)$announce_interval,  // tracker config: announce interval (sec?)
-			'min interval' 	=> (int)1,  // tracker config: min interval (sec?)
-			'peers' 		=> $peerset,
-			'peers6' 		=> $peerset6,
-			'complete' 		=> (int)$seeders,
-			'incomplete' 	=> (int)$leechers
+			'interval' => (int)$announce_interval,  // tracker config: announce interval (sec?)
+			'min interval' => (int)1,  // tracker config: min interval (sec?)
+			'peers' => $peerset,
+			'peers6' => $peerset6,
+			'complete' => (int)$seeders,
+			'incomplete' => (int)$leechers
 	);
 	
 	$peers_list_cached = $cache->set(PEERS_LIST_PREFIX . $torrent_id, $output, PEERS_LIST_EXPIRE);
