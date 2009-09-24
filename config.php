@@ -5,6 +5,7 @@ $tracker_tbl = 'tracker';
 
 // DB
 $cfg['tr_db_type'] = 'mysql';                   // Available db types: sqlite, mysql
+// Support of sqlite was not tested.
 
 // DB - MySQL
 $cfg['tr_db']['mysql'] = array(
@@ -19,13 +20,13 @@ $cfg['tr_db']['mysql'] = array(
 // DB - SQLite
 $cfg['tr_db']['sqlite'] = array(
 	'db_file_path' => 'C:\Program Files\VertrigoServ\Sqlitemanager\tr_db.sqlite',       // preferable on tmpfs
-	'table_schema' => "CREATE TABLE $tracker_tbl ( 
-						peer_hash CHAR(32), 
-						info_hash CHAR(20), 
-						ip        CHAR(8), 
-						ipv6      CHAR(32), 
-						port      SMALLINT(5), 
-						seeder    TINYINT(1) DEFAULT '0', 
+	'table_schema' => "CREATE TABLE $tracker_tbl (
+						peer_hash CHAR(32),
+						info_hash CHAR(20),
+						ip        CHAR(8),
+						ipv6      CHAR(32),
+						port      SMALLINT(5),
+						seeder    TINYINT(1) DEFAULT '0',
 						update_time INT(11),
 						PRIMARY KEY (peer_hash, info_hash)
 						)",
@@ -48,33 +49,17 @@ $cfg['ignore_reported_ip'] = false; // Ignore IP from GET query
 $cfg['allow_internal_ip']  = true; // Allow IP from local, etc
 $cfg['verify_reported_ip'] = false; // Verify reported IP?
 $cfg['base_path'] = isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : dirname(realpath(__FILE__)); // Without end slash
-$cfg['TRACKERS_URL'] = 'http://re-tracker.ru/trackerssimple.ini'; // Path to obtain tracker list
+$cfg['base_url'] = "/"; // Base url where retracker is located. End slash required. Example: /my_own_path/
 
 // Cache
-$cfg['cache_type'] = 'filecache'; // Available cache types: none, APC, memcached, sqlite, filecache
-
+$cfg['cache_type'] = 'memcached'; // Available cache types: none, memcached
+// Cache type "none" is not recommended for use. Xcache support is planned.
 $cfg['cache']['memcached'] = array(
-	'host'         => '127.0.0.1', 
-	'port'         => 11211, 
+	'host'         => '127.0.0.1',
+	'port'         => 11211,
 	'pconnect'     => true, // use persistent connection
 	'con_required' => true
 ); // exit script if can't connect
-
-$cfg['cache']['sqlite'] = array(
-	'db_file_path' => '/path/to/sqlite.cache.db', #  /dev/shm/sqlite.db
-	'table_name'   => 'cache', 
-	'table_schema' => 'CREATE TABLE cache (
-	                     cache_name        VARCHAR(255),
-	                     cache_expire_time INT,
-	                     cache_value       TEXT,
-	                     PRIMARY KEY (cache_name)
-	                   )', 
-	'pconnect'     => true, 
-	'con_required' => true, 
-	'log_name'     => 'CACHE'
-);
-
-$cfg['cache']['filecache']['path'] = './cache_tr/';
 
 define('DUMMY_PEER', pack('Nn', ip2long('10.254.254.247'), 64765));
 
@@ -94,4 +79,5 @@ define('DBG_LOG', false); // Debug log
 // Torrents list
 define('STATS_EXPIRE', 1200);  // sec
 	
+// Redefine config variables from $cfg in that file for safe upgrade from svn
 @include_once (dirname(realpath(__FILE__)).'/config.local.php');

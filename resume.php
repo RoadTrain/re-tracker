@@ -36,10 +36,10 @@ if (empty($_SESSION['resume']) || !isset($_REQUEST['act']))
 <head>
 <meta http-equiv="content-type" content="text/html; charset=windows-1251" />
 
-<link rel="stylesheet" href="./main.css?" type="text/css">
+<link rel="stylesheet" href="<?=$cfg['base_url'];?>main.css?" type="text/css">
 
-<script type="text/javascript" src="./jquery.pack.js?v=1"></script>
-<script type="text/javascript" src="./main.js?v=1"></script>
+<script type="text/javascript" src="<?=$cfg['base_url'];?>jquery.pack.js?v=1"></script>
+<script type="text/javascript" src="<?=$cfg['base_url'];?>main.js?v=1"></script>
 
 <title>Re-Tracker.ru :: resume.dat patcher</title>
 
@@ -69,7 +69,7 @@ if (empty($_SESSION['resume']) || !isset($_REQUEST['act']))
 		<br>
 		<p>Выберите свой город и провайдера</p>
 			<p class="select">
-				<select name="city" id="city" onchange="$('#isp').load('torrents.php?isp_list='+$('#city').val());">
+				<select name="city" id="city" onchange="$('#isp').load('<?=$cfg['base_url'];?>torrents.php?isp_list='+$('#city').val());">
 					<option value="0">&raquo; Выберите город</option>
 					<?=iconv('UTF-8', 'CP1251', city_select($trackers['Город'], $city));?>
 				</select>

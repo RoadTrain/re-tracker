@@ -60,10 +60,10 @@ $_SESSION['last_search'] = TIMENOW;
 <head>
 <meta http-equiv="content-type" content="text/html; charset=windows-1251" />
 
-<link rel="stylesheet" href="./main.css?v=1" type="text/css">
+<link rel="stylesheet" href="<?=$cfg['base_url'];?>main.css?v=1" type="text/css">
 
-<script type="text/javascript" src="./jquery.pack.js?v=1"></script>
-<script type="text/javascript" src="./main.js?v=1"></script>
+<script type="text/javascript" src="<?=$cfg['base_url'];?>jquery.pack.js?v=1"></script>
+<script type="text/javascript" src="<?=$cfg['base_url'];?>main.js?v=1"></script>
 
 <style type="text/css">
 #tor-tbl s { display: none; }
