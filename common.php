@@ -6,7 +6,6 @@ define('TIMENOW', time());
 
 set_magic_quotes_runtime(0); // Disable magic_quotes_runtime
 
-
 include_once (dirname(realpath(__FILE__)) . '/config.php');
 include_once (dirname(realpath(__FILE__)) . '/cache.class.php');
 
@@ -179,7 +178,7 @@ function detect_encoding($string)
 	
 	foreach ($list as $item)
 	{
-		$sample = iconv($item, $item, $string);
+		$sample = @iconv($item, $item, $string);
 		if (md5($sample) == md5($string))
 		{
 			return $item;
