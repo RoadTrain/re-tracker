@@ -2,11 +2,13 @@
 ini_set("display_errors", "Off");
 ini_set("log_errors", "Off");
 
+header('Content-Type: text/plain; charset=UTF-8',true);
+
 if (0)
 {
 	$query = http_build_query($_GET);
 	header("HTTP/1.1 301 Moved Permanently");
-	header("Location: http://open.tracker.thepiratebay.org:80/announce?$query");
+	header("Location: http://tracker.openbittorrent.com/announce?$query");
 	exit();
 }
 
@@ -140,13 +142,15 @@ if ($event === 'stopped')
 }
 
 // Escape strings.
-//if (detect_encoding($name)=='windows-1251') {
-//	$name = iconv("windows-1251","utf-8",$name);
-//}
+if (detect_encoding($name) == 'windows-1251')
+{
+	$name = iconv("windows-1251", "utf-8", $name);
+}
 $name = $db->escape($name);
-//if (detect_encoding($comment)=='windows-1251') {
-//	$comment = iconv("windows-1251","utf-8",$comment);
-//}
+if (detect_encoding($comment) == 'windows-1251')
+{
+	$comment = iconv("windows-1251", "utf-8", $comment);
+}
 $comment = $db->escape($comment);
 
 $torrent_id = isset($lp_info['torrent_id']) ? (int)$lp_info['torrent_id'] : 0;

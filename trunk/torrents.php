@@ -5,6 +5,8 @@ ini_set("display_errors","Off");
 include_once (dirname(realpath(__FILE__)).'/common.php');
 include_once (dirname(realpath(__FILE__)).'/functions.php');
 
+header('Content-Type: text/html; charset=UTF-8',true);
+
 if (!$cache->used || ($cache->get('next_cleanup') < TIMENOW))
 {
 	cleanup();
@@ -17,8 +19,7 @@ if (get_magic_quotes_gpc())
 
 if (isset($_GET['isp_list']) AND $city = intval($_GET['isp_list']))
 {
-	header('Content-Type: text/html; charset=windows-1251', true);
-	echo iconv('UTF-8', 'CP1251', isp_select($city,0));
+	echo isp_select($city,0);
 	exit;
 }
 
@@ -58,7 +59,7 @@ $_SESSION['last_search'] = TIMENOW;
 <html>
 
 <head>
-<meta http-equiv="content-type" content="text/html; charset=windows-1251" />
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 
 <link rel="stylesheet" href="<?=$cfg['base_url'];?>main.css?v=1" type="text/css">
 
@@ -121,7 +122,7 @@ $(document).ready(function()
 <div id="main_content_wrap">
 
 <?
-echo "<h4>Статистика</h4>";
+echo "<h4>РЎС‚Р°С‚РёСЃС‚РёРєР°</h4>";
 
 $stats = $cache->get('stats');
 
@@ -144,8 +145,8 @@ if(!$stats)
 
 	$stats_cached = $cache->set('stats', $stats, STATS_EXPIRE);
 }
-echo "Всего пиров: <b>{$stats['peers_num']}</b>, всего торрентов: <b>{$stats['torrents_num']}</b><br />\n";
-// (уникальных: <b>{$stats['ip_num']}</b>)
+echo "Р’СЃРµРіРѕ РїРёСЂРѕРІ: <b>{$stats['peers_num']}</b>, РІСЃРµРіРѕ С‚РѕСЂСЂРµРЅС‚РѕРІ: <b>{$stats['torrents_num']}</b><br />\n";
+// (СѓРЅРёРєР°Р»СЊРЅС‹С…: <b>{$stats['ip_num']}</b>)
 
 $req_type = isset($_GET['o']) ? '_GET' : '_COOKIE';
 
@@ -256,7 +257,7 @@ setcookie('adm', $admin, TIMENOW + $search_opt_keep);
 <table class="bordered w100" cellspacing="0">
 <col class="row1">
 <tr>
-	<th class="thHead">Опции показа торрентов</th>
+	<th class="thHead">РћРїС†РёРё РїРѕРєР°Р·Р° С‚РѕСЂСЂРµРЅС‚РѕРІ</th>
 </tr>
 <tr>
 	<td class="row4" style="padding: 4px";>
@@ -265,34 +266,34 @@ setcookie('adm', $admin, TIMENOW + $search_opt_keep);
 		<tr>
 			<td height="1" width="20%">
 				<fieldset>
-				<legend>Упорядочить по</legend>
+				<legend>РЈРїРѕСЂСЏРґРѕС‡РёС‚СЊ РїРѕ</legend>
 				<div class="med">
 					<p class="select">
 						<select name="o" id="o">
-							<option value="1" <?=($order==1) ? 'selected="selected"' : '' ;?>>&nbsp;Добавлен&nbsp;</option>
-							<option value="2" <?=($order==2) ? 'selected="selected"' : '' ;?>>&nbsp;Название торрента&nbsp;</option>
+							<option value="1" <?=($order==1) ? 'selected="selected"' : '' ;?>>&nbsp;Р”РѕР±Р°РІР»РµРЅ&nbsp;</option>
+							<option value="2" <?=($order==2) ? 'selected="selected"' : '' ;?>>&nbsp;РќР°Р·РІР°РЅРёРµ С‚РѕСЂСЂРµРЅС‚Р°&nbsp;</option>
 							<option value="3" <?=($order==3) ? 'selected="selected"' : '' ;?>>&nbsp;Seeders&nbsp;</option>
 							<option value="4" <?=($order==4) ? 'selected="selected"' : '' ;?>>&nbsp;Leechers&nbsp;</option>
-							<option value="5" <?=($order==5) ? 'selected="selected"' : '' ;?>>&nbsp;Размер&nbsp;</option>
+							<option value="5" <?=($order==5) ? 'selected="selected"' : '' ;?>>&nbsp;Р Р°Р·РјРµСЂ&nbsp;</option>
 						</select>
 					</p>
-					<p class="radio"><label><input type="radio" name="s" value="1" <?=($sort==1) ? 'checked="checked"' : '' ;?> /> по возрастанию</label></p>
-					<p class="radio"><label><input type="radio" name="s" value="2" <?=($sort==2) ? 'checked="checked"' : '' ;?> /> по убыванию</label></p>
+					<p class="radio"><label><input type="radio" name="s" value="1" <?=($sort==1) ? 'checked="checked"' : '' ;?> /> РїРѕ РІРѕР·СЂР°СЃС‚Р°РЅРёСЋ</label></p>
+					<p class="radio"><label><input type="radio" name="s" value="2" <?=($sort==2) ? 'checked="checked"' : '' ;?> /> РїРѕ СѓР±С‹РІР°РЅРёСЋ</label></p>
 				</div>
 				</fieldset>
 			</td>
 			<td width="30%">
 				<fieldset>
-				<legend>Показывать только</legend>
+				<legend>РџРѕРєР°Р·С‹РІР°С‚СЊ С‚РѕР»СЊРєРѕ</legend>
 				<div class="gen">
 					<p class="chbox">
-						<label><input type="checkbox"  name="my"  value="1" <?=($my) ? 'checked="checked"' : '' ;?> />&nbsp;Мои раздачи&nbsp;</label>[<b>&reg;</b>]
+						<label><input type="checkbox"  name="my"  value="1" <?=($my) ? 'checked="checked"' : '' ;?> />&nbsp;РњРѕРё СЂР°Р·РґР°С‡Рё&nbsp;</label>[<b>&reg;</b>]
 					</p>
 					<p class="chbox">
-						<label><input type="checkbox"  name="a"  value="1" <?=($active) ? 'checked="checked"' : '' ;?> />&nbsp;Активные (есть seeder или leecher)&nbsp;</label>
+						<label><input type="checkbox"  name="a"  value="1" <?=($active) ? 'checked="checked"' : '' ;?> />&nbsp;РђРєС‚РёРІРЅС‹Рµ (РµСЃС‚СЊ seeder РёР»Рё leecher)&nbsp;</label>
 					</p>
 					<p class="chbox">
-						<label><input type="checkbox"  name="ds"  value="1" <?=($desc_exist) ? 'checked="checked"' : '' ;?> />&nbsp;Есть описание&nbsp;</label>
+						<label><input type="checkbox"  name="ds"  value="1" <?=($desc_exist) ? 'checked="checked"' : '' ;?> />&nbsp;Р•СЃС‚СЊ РѕРїРёСЃР°РЅРёРµ&nbsp;</label>
 					</p>
 				</div>
 				</fieldset>
@@ -301,29 +302,29 @@ setcookie('adm', $admin, TIMENOW + $search_opt_keep);
 		<tr>
 			<td colspan="1" width="50%">
 				<fieldset>
-				<legend>Название содержит</legend>
+				<legend>РќР°Р·РІР°РЅРёРµ СЃРѕРґРµСЂР¶РёС‚</legend>
 				<div>
 					<p class="input">
 						<input style="width: 95%;" class="post" type="text" size="50" maxlength="60" name="nm" id="nm" value="<?=($title_match) ? $title_match : '';?>" />
 					</p>
 					<p class="chbox med">
-						<a class="med" href="#" onclick="$('#nm').val(''); return false;">Очистить</a>&nbsp;&middot;
-						<a class="med" href="http://re-tracker.ru/index.php?showtopic=131">Помощь по поиску</a>
+						<a class="med" href="#" onclick="$('#nm').val(''); return false;">РћС‡РёСЃС‚РёС‚СЊ</a>&nbsp;&middot;
+						<a class="med" href="http://re-tracker.ru/index.php?showtopic=131">РџРѕРјРѕС‰СЊ РїРѕ РїРѕРёСЃРєСѓ</a>
 					</p>
 				</div>
 				</fieldset>
 			</td>
 			<td colspan="1" width="50%">
 				<fieldset>
-				<legend>Город и провайдер</legend>
+				<legend>Р“РѕСЂРѕРґ Рё РїСЂРѕРІР°Р№РґРµСЂ</legend>
 				<div>
 					<p class="select">
 						<select name="city" id="city" onchange="if(this.value>0) $('#isp').load('torrents.php?isp_list='+$('#city').val());">
-							<option value="0">&raquo; Выберите город</option>
-							<?=iconv('UTF-8', 'CP1251', city_select($city));?>
+							<option value="0">&raquo; Р’С‹Р±РµСЂРёС‚Рµ РіРѕСЂРѕРґ</option>
+							<?=city_select($city);?>
 						</select>
 						<select name="isp" id="isp">
-							<?=iconv('UTF-8', 'CP1251', isp_select($city, $isp));?>
+							<?=isp_select($city, $isp);?>
 						</select>
 					</p>
 				</div>
@@ -336,7 +337,7 @@ setcookie('adm', $admin, TIMENOW + $search_opt_keep);
 </tr>
 <tr>
 	<td class="row3 pad_4 tCenter">
-		<input class="bold long" type="submit" name="" value="&nbsp;&nbsp;Поиск&nbsp;&nbsp;" />
+		<input class="bold long" type="submit" name="" value="&nbsp;&nbsp;РџРѕРёСЃРє&nbsp;&nbsp;" />
 	</td>
 </tr>
 </table>
@@ -349,8 +350,8 @@ setcookie('adm', $admin, TIMENOW + $search_opt_keep);
 <thead>
 <tr>
 	<th class="{sorter: 'text'}" width="25%"><b class="tbs-text">InfoHash</b></th>
-	<th class="{sorter: 'text'}" width="75%" title="Название"><b class="tbs-text">Name</b></th>
-	<th class="{sorter: 'digit'}" title="Размер"><b class="tbs-text">Size</b></th>
+	<th class="{sorter: 'text'}" width="75%" title="РќР°Р·РІР°РЅРёРµ"><b class="tbs-text">Name</b></th>
+	<th class="{sorter: 'digit'}" title="Р Р°Р·РјРµСЂ"><b class="tbs-text">Size</b></th>
 	<th class="{sorter: 'digit'}" title="Seeders"><b class="tbs-text">S</b></th>
 	<th class="{sorter: 'digit'}" title="Leechers"><b class="tbs-text">L</b></th>
 	<th class="{sorter: 'digit'}" title="Added"><b class="tbs-text">Added</b></th>
@@ -441,9 +442,9 @@ setcookie('adm', $admin, TIMENOW + $search_opt_keep);
 
 		<span id="name_<?=$torrent_id;?>">
 			<?=($tor_url) ?
-			"<a class=\"genmed\" href=\"$tor_url\">".(!empty($name) ? "<b>$name</b>" : "ссылка") ."</a>"
+			"<a class=\"genmed\" href=\"$tor_url\">".(!empty($name) ? "<b>$name</b>" : "СЃСЃС‹Р»РєР°") ."</a>"
 			:
-			"<i>не задано</i>";?>
+			"<i>РЅРµ Р·Р°РґР°РЅРѕ</i>";?>
 		<?=($is_url && $allow_check) ?
 			"<a href=\"#\"
 				onclick=\"$(this).replaceWith('<im'+'g src=images/updating.gif alt=pic title=Updating>');
@@ -452,7 +453,7 @@ setcookie('adm', $admin, TIMENOW + $search_opt_keep);
 			 </a>" : "" ;?>
 		</span>
 		<?=(!empty($comment) && (!$is_url)) ?
-			"<p><i><u>комментарий:</u></i> ".make_url($comment)." </p>" : "" ; ?>
+			"<p><i><u>РєРѕРјРјРµРЅС‚Р°СЂРёР№:</u></i> ".make_url($comment)." </p>" : "" ; ?>
 	</td>
 	<td class="row4 small nowrap">
 		<s><?=$tor['size'];?></s>
@@ -462,9 +463,9 @@ setcookie('adm', $admin, TIMENOW + $search_opt_keep);
 		<p class="small tr-dl"><?=$size;?></p>
 		<? } ?>
 	</td>
-	<td class="row4 seedmed" title="Раздают"><b><?=$seeders;?></b></td>
-	<td class="row4 leechmed" title="Качают"><b><?=$leechers;?></b></td>
-	<td class="row4 small nowrap" style="padding: 1px 3px 2px;" title="Добавлен">
+	<td class="row4 seedmed" title="Р Р°Р·РґР°СЋС‚"><b><?=$seeders;?></b></td>
+	<td class="row4 leechmed" title="РљР°С‡Р°СЋС‚"><b><?=$leechers;?></b></td>
+	<td class="row4 small nowrap" style="padding: 1px 3px 2px;" title="Р”РѕР±Р°РІР»РµРЅ">
 		<s><?=$tor['reg_time'];?></s>
 		<p><?=$added_time;?></p>
 		<p><?=$added_date;?></p>

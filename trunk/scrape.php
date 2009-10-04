@@ -4,7 +4,7 @@ include_once (dirname(realpath(__FILE__)) . '/common.php');
 
 $info_hash = isset($_GET['info_hash']) ? $_GET['info_hash'] : '';
 
-$torrent = array(	
+$torrent = array(
 	'seeders'  => 0,
 	'leechers' => 0
 );

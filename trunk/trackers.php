@@ -51,7 +51,6 @@ function AddRetracker($city, $isp, $retracker, $email) {
 					'',
 					'".$db->escape($email)."',
 					'".$key."')";
-	$db->query("SET NAMES utf8");
 	if(!$db->query($sql)) {
 		$banned++;
 		if ($banned>3) {
@@ -62,7 +61,6 @@ function AddRetracker($city, $isp, $retracker, $email) {
 		}
 		return "При добавлении ретрекера произошла ошибка, попробуйте повторить позже.";
 	}
-	$db->query("SET NAMES cp1251");
 	ob_clean();
 	require_once 'mail.php';
 	$message = ob_get_contents();
@@ -107,9 +105,7 @@ function ConfirmAction($email, $code) {
 		}
 		return "Некорректный код";
 	}
-	$db->query("SET NAMES utf8");
 	$db->query("UPDATE `tracker_retrackers` SET `retracker`=`new_retracker`, `allow`=1, `key`='' WHERE `email`='".$db->escape($email)."' AND `key`='".$db->escape($code)."'");
-	$db->query("SET NAMES cp1251");
 	$cache->rm("citys");
 	$cache->rm("providers_tag");
 	$cache->rm("retrackers_tag");

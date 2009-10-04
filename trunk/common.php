@@ -6,6 +6,7 @@ define('TIMENOW', time());
 
 set_magic_quotes_runtime(0); // Disable magic_quotes_runtime
 
+
 include_once (dirname(realpath(__FILE__)) . '/config.php');
 include_once (dirname(realpath(__FILE__)) . '/cache.class.php');
 
@@ -30,12 +31,12 @@ switch ($cfg['tr_db_type'])
 		break;
 	case 'sqlite':
 		$default_cfg = array(
-			'db_file_path' => '/dev/shm/tr.db.sqlite',
-			'table_name'   => 'tracker',
-			'table_schema' => 'CREATE TABLE tracker (...)',
-			'pconnect'     => true,
-			'con_required' => true,
-			'log_name'     => 'SQLite',
+				'db_file_path' => '/dev/shm/tr.db.sqlite',
+				'table_name' => 'tracker',
+				'table_schema' => 'CREATE TABLE tracker (...)',
+				'pconnect' => true,
+				'con_required' => true,
+				'log_name' => 'SQLite'
 		);
 		$db = new sqlite_common(array_merge($default_cfg, $cfg['tr_db']['sqlite']));
 		break;
@@ -54,10 +55,10 @@ function cleanup()
 	$priority = ($cfg['tr_db_type'] == 'mysql') ? 'LOW_PRIORITY' : '';
 	
 	$peer_expire_time = TIMENOW - floor($cfg['announce_interval'] * $cfg['expire_factor']);
-	$db->query("DELETE $priority FROM $tracker WHERE update_time < $peer_expire_time");
+	$db->query("DELETE $priority FROM $tracker WHERE update_time < $peer_expire_time LIMIT 100");
 	
 	$torrent_expire_time = TIMENOW - TORRENTS_EXPIRE;
-	$db->query("DELETE $priority FROM $tracker_stats WHERE update_time < $torrent_expire_time");
+	$db->query("DELETE $priority FROM $tracker_stats WHERE update_time < $torrent_expire_time LIMIT 100");
 }
 
 function utime()
@@ -85,8 +86,8 @@ function drop_fast_announce($lp_info)
 function msg_die($msg)
 {
 	$output = bencode(array(
-		'min interval'   => (int) 60,
-		'failure reason' => (string) $msg
+			'min interval' => (int)60,
+			'failure reason' => (string)$msg
 	));
 	
 	die($output);
@@ -95,51 +96,52 @@ function msg_die($msg)
 function dummy_exit($interval = 60)
 {
 	$output = bencode(array(
-		'interval'     => (int) $interval,
-		'min interval' => (int) $interval,
-		'peers'        => (string) DUMMY_PEER
+			'interval' => (int)$interval,
+			'min interval' => (int)$interval,
+			'peers' => (string)DUMMY_PEER
 	));
 	
 	die($output);
 }
 
-function encode_ip ($dotquad_ip)
+function encode_ip($dotquad_ip)
 {
 	$ip_sep = explode('.', $dotquad_ip);
 	if (count($ip_sep) == 4)
 	{
 		return sprintf('%02x%02x%02x%02x', $ip_sep[0], $ip_sep[1], $ip_sep[2], $ip_sep[3]);
 	}
-
+	
 	$ip_sep = explode(':', preg_replace('/(^:)|(:$)/', '', $dotquad_ip));
 	$res = '';
 	foreach ($ip_sep as $x)
 	{
-		$res .= sprintf('%0'. ($x == '' ? (9 - count($ip_sep)) * 4 : 4) .'s', $x);
+		$res .= sprintf('%0' . ($x == '' ? (9 - count($ip_sep)) * 4 : 4) . 's', $x);
 	}
 	return $res;
 }
 
-function decode_ip ($int_ip)
+function decode_ip($int_ip)
 {
 	if (strlen($int_ip) == 32)
 	{
 		$int_ip = substr(chunk_split($int_ip, 4, ':'), 0, 39);
-		$int_ip = ':'. implode(':', array_map("hexhex", explode(':',$int_ip))) .':';
+		$int_ip = ':' . implode(':', array_map("hexhex", explode(':', $int_ip))) . ':';
 		preg_match_all("/(:0)+/", $int_ip, $zeros);
 		if (count($zeros[0]) > 0)
 		{
 			$match = '';
-			foreach($zeros[0] as $zero)
+			foreach ($zeros[0] as $zero)
 				if (strlen($zero) > strlen($match))
 					$match = $zero;
-			$int_ip = preg_replace('/'. $match .'/', ':', $int_ip, 1);
+			$int_ip = preg_replace('/' . $match . '/', ':', $int_ip, 1);
 		}
 		return preg_replace('/(^:([^:]))|(([^:]):$)/', '$2$4', $int_ip);
 	}
-	if (strlen($int_ip) !== 8) $int_ip = '00000000';
+	if (strlen($int_ip) !== 8)
+		$int_ip = '00000000';
 	$hexipbang = explode('.', chunk_split($int_ip, 2, '.'));
-	return hexdec($hexipbang[0]). '.' . hexdec($hexipbang[1]) . '.' . hexdec($hexipbang[2]) . '.' . hexdec($hexipbang[3]);
+	return hexdec($hexipbang[0]) . '.' . hexdec($hexipbang[1]) . '.' . hexdec($hexipbang[2]) . '.' . hexdec($hexipbang[3]);
 }
 
 function hexhex($value)
@@ -170,17 +172,20 @@ function str_compact($str)
 
 function detect_encoding($string)
 {
-	static $list = array('utf-8', 'windows-1251');
- 
+	static $list = array(
+			'utf-8',
+			'windows-1251'
+	);
+	
 	foreach ($list as $item)
 	{
-    	$sample = iconv($item, $item, $string);
-    	if (md5($sample) == md5($string))
-    	{
-      		return $item;
-    	}
-  	}
-  	return null;
+		$sample = iconv($item, $item, $string);
+		if (md5($sample) == md5($string))
+		{
+			return $item;
+		}
+	}
+	return null;
 }
 
 function dbg_log($str, $file)
@@ -259,7 +264,17 @@ function mkdir_rec($path, $mode)
 
 function clean_filename($fname)
 {
-	static $s = array('\\', '/', ':', '*', '?', '"', '<', '>', '|');
+	static $s = array(
+			'\\',
+			'/',
+			':',
+			'*',
+			'?',
+			'"',
+			'<',
+			'>',
+			'|'
+	);
 	
 	return str_replace($s, '_', $fname);
 }
@@ -302,15 +317,15 @@ function bencode($var)
 {
 	if (is_string($var))
 	{
-		return strlen($var) .':'. $var;
+		return strlen($var) . ':' . $var;
 	}
 	else if (is_int($var))
 	{
-		return 'i'. $var .'e';
+		return 'i' . $var . 'e';
 	}
 	else if (is_float($var))
 	{
-		return 'i'. sprintf('%.0f', $var) .'e';
+		return 'i' . sprintf('%.0f', $var) . 'e';
 	}
 	else if (is_array($var))
 	{
@@ -321,7 +336,7 @@ function bencode($var)
 		else
 		{
 			$assoc = false;
-
+			
 			foreach ($var as $key => $val)
 			{
 				if (!is_int($key))
@@ -330,27 +345,27 @@ function bencode($var)
 					break;
 				}
 			}
-
+			
 			if ($assoc)
 			{
 				ksort($var, SORT_REGULAR);
 				$ret = 'd';
-
+				
 				foreach ($var as $key => $val)
 				{
 					$ret .= bencode($key) . bencode($val);
 				}
-				return $ret .'e';
+				return $ret . 'e';
 			}
 			else
 			{
 				$ret = 'l';
-
+				
 				foreach ($var as $val)
 				{
 					$ret .= bencode($val);
 				}
-				return $ret .'e';
+				return $ret . 'e';
 			}
 		}
 	}
@@ -362,52 +377,59 @@ function bencode($var)
 
 class sqlite_common
 {
-	var $cfg = array(
-	             'db_file_path' => 'sqlite.db',
-	             'table_name'   => 'table_name',
-	             'table_schema' => 'CREATE TABLE table_name (...)',
-	             'pconnect'     => true,
-	             'con_required' => true,
-	             'log_name'     => 'SQLite',
-	           );
-	var $dbh                    = null;
-	var $table_create_attempts  = 0;
-	var $random_fn              = 'random()';
 
-	function sqlite_common ($cfg)
+	var $cfg = array(
+			'db_file_path' => 'sqlite.db',
+			'table_name' => 'table_name',
+			'table_schema' => 'CREATE TABLE table_name (...)',
+			'pconnect' => true,
+			'con_required' => true,
+			'log_name' => 'SQLite'
+	);
+
+	var $dbh = null;
+
+	var $table_create_attempts = 0;
+
+	var $random_fn = 'random()';
+
+	function sqlite_common($cfg)
 	{
-		if (!function_exists('sqlite_open')) die('Error: Sqlite extension not installed');
+		if (!function_exists('sqlite_open'))
+			die('Error: Sqlite extension not installed');
 		$this->cfg = array_merge($this->cfg, $cfg);
 	}
 
-	function init ()
+	function init()
 	{
 		$connect_fn = ($this->cfg['pconnect']) ? 'sqlite_popen' : 'sqlite_open';
-
+		
 		$this->dbh = @$connect_fn($this->cfg['db_file_path'], 0666, $sqlite_error);
-
+		
 		if (!is_resource($this->dbh) && $this->cfg['con_required'])
 		{
 			trigger_error($sqlite_error, E_USER_ERROR);
 		}
 	}
 
-	function create_table ()
+	function create_table()
 	{
 		$this->table_create_attempts++;
 		$result = sqlite_query($this->dbh, $this->cfg['table_schema']);
 		$msg = ($result) ? "{$this->cfg['table_name']} table created" : $this->get_error_msg();
-		if(!empty($this->cfg['table_index'])) $result = sqlite_query($this->dbh, $this->cfg['table_index']);
+		if (!empty($this->cfg['table_index']))
+			$result = sqlite_query($this->dbh, $this->cfg['table_index']);
 		trigger_error($msg, E_USER_WARNING);
 		return $result;
 	}
 
-	function query ($query, $type = 'unbuffered')
+	function query($query, $type = 'unbuffered')
 	{
-		if (!is_resource($this->dbh)) $this->init();
-
+		if (!is_resource($this->dbh))
+			$this->init();
+		
 		$query_fn = ($type === 'unbuffered') ? 'sqlite_unbuffered_query' : 'sqlite_query';
-
+		
 		if (!$result = $query_fn($this->dbh, $query, SQLITE_ASSOC))
 		{
 			if (!$this->table_create_attempts && !sqlite_num_rows(sqlite_query($this->dbh, "PRAGMA table_info({$this->cfg['table_name']})")))
@@ -422,57 +444,61 @@ class sqlite_common
 				$this->trigger_error($this->get_error_msg());
 			}
 		}
-
+		
 		return $result;
 	}
 
-	function fetch_row ($query, $type = 'unbuffered')
+	function fetch_row($query, $type = 'unbuffered')
 	{
 		$result = $this->query($query, $type);
 		return is_resource($result) ? sqlite_fetch_array($result, SQLITE_ASSOC) : false;
 	}
 
-	function fetch_rowset ($query, $type = 'unbuffered')
+	function fetch_rowset($query, $type = 'unbuffered')
 	{
 		$result = $this->query($query, $type);
 		return is_resource($result) ? sqlite_fetch_all($result, SQLITE_ASSOC) : array();
 	}
 
-	function escape ($str)
+	function escape($str)
 	{
 		return sqlite_escape_string($str);
 	}
 
-	function get_error_msg ()
+	function get_error_msg()
 	{
-		return 'SQLite error #'. ($err_code = sqlite_last_error($this->dbh)) .': '. sqlite_error_string($err_code);
+		return 'SQLite error #' . ($err_code = sqlite_last_error($this->dbh)) . ': ' . sqlite_error_string($err_code);
 	}
 
-	function trigger_error ($msg = 'DB Error')
+	function trigger_error($msg = 'DB Error')
 	{
-		if (error_reporting()) trigger_error($msg, E_USER_ERROR);
+		if (error_reporting())
+			trigger_error($msg, E_USER_ERROR);
 	}
 }
 
 class mysql_common
 {
+
 	var $cfg = array(
-	             'dbhost'   => '',
-	             'dbuser'   => '',
-	             'dbpasswd' => '',
-	             'dbname'   => '',
-	             'pconnect' => false,
-	             'log_name' => 'MySQL',
-	           );
-	var $dbh       = null;
+			'dbhost' => '',
+			'dbuser' => '',
+			'dbpasswd' => '',
+			'dbname' => '',
+			'pconnect' => false,
+			'log_name' => 'MySQL'
+	);
+
+	var $dbh = null;
+
 	var $random_fn = 'RAND()';
 
-	function mysql_common ($cfg)
+	function mysql_common($cfg)
 	{
 		$this->cfg = array_merge($this->cfg, $cfg);
 	}
 
-	function init ()
+	function init()
 	{
 		// Connect
 		$connect_fn = ($this->cfg['pconnect']) ? 'mysql_pconnect' : 'mysql_connect';
@@ -480,30 +506,35 @@ class mysql_common
 		{
 			trigger_error($this->get_error_msg(), E_USER_ERROR);
 		}
-		register_shutdown_function(array(&$this, 'disconnect'));
-
+		register_shutdown_function(array(
+				&$this,
+				'disconnect'
+		));
+		
 		// Select DB
 		if (!mysql_select_db($this->cfg['dbname'], $this->dbh))
 		{
 			trigger_error($this->get_error_msg(), E_USER_ERROR);
 		}
 		// Set charset
-		if (!$this->query("SET NAMES cp1251"))
+		if (!$this->query("SET NAMES utf8"))
 		{
-			trigger_error("Could not set charset cp1251", E_USER_ERROR);
+			trigger_error("Could not set charset utf8", E_USER_ERROR);
 		}
 	}
 
-	function disconnect ()
+	function disconnect()
 	{
-		if (is_resource($this->dbh)) mysql_close($this->dbh);
+		if (is_resource($this->dbh))
+			mysql_close($this->dbh);
 		$this->dbh = $this->selected_db = null;
 	}
 
-	function query ($query, $type = 'unbuffered')
+	function query($query, $type = 'unbuffered')
 	{
-		if (!is_resource($this->dbh)) $this->init();
-
+		if (!is_resource($this->dbh))
+			$this->init();
+		
 		$query_fn = ($type === 'unbuffered') ? 'mysql_unbuffered_query' : 'mysql_query';
 		if (!$result = $query_fn($query, $this->dbh))
 		{
@@ -512,36 +543,39 @@ class mysql_common
 		return $result;
 	}
 
-	function fetch_row ($query, $type = 'unbuffered')
+	function fetch_row($query, $type = 'unbuffered')
 	{
 		$result = $this->query($query, $type);
 		return is_resource($result) ? mysql_fetch_array($result, MYSQL_ASSOC) : false;
 	}
 
-	function fetch_rowset ($query, $type = 'unbuffered')
+	function fetch_rowset($query, $type = 'unbuffered')
 	{
 		$rowset = array();
 		$result = $this->query($query, $type);
 		if (is_resource($result))
 		{
-			while ($row = mysql_fetch_array($result, MYSQL_ASSOC)) $rowset[] = $row;
+			while ($row = mysql_fetch_array($result, MYSQL_ASSOC))
+				$rowset[] = $row;
 		}
 		return $rowset;
 	}
 
-	function escape ($str)
+	function escape($str)
 	{
-		if (!is_resource($this->dbh)) $this->init();
-		return mysql_real_escape_string($str,$this->dbh);
+		if (!is_resource($this->dbh))
+			$this->init();
+		return mysql_real_escape_string($str, $this->dbh);
 	}
 
-	function get_error_msg ()
+	function get_error_msg()
 	{
-		return (is_resource($this->dbh)) ? 'MySQL error #'. mysql_errno($this->dbh) .': '. mysql_error($this->dbh) : 'not connected';
+		return (is_resource($this->dbh)) ? 'MySQL error #' . mysql_errno($this->dbh) . ': ' . mysql_error($this->dbh) : 'not connected';
 	}
 
-	function trigger_error ($msg = 'DB Error')
+	function trigger_error($msg = 'DB Error')
 	{
-		if (error_reporting()) trigger_error($msg, E_USER_ERROR);
+		if (error_reporting())
+			trigger_error($msg, E_USER_ERROR);
 	}
 }
