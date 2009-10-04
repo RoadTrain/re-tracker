@@ -3,6 +3,8 @@
 include_once (dirname(realpath(__FILE__)).'/common.php');
 include_once (dirname(realpath(__FILE__)).'/functions.php');
 
+header('Content-Type: text/html; charset=UTF-8',true);
+
 error_reporting(0);
 
 $trackers = get_trackers();
@@ -12,7 +14,7 @@ if (isset($_GET['tr_list']))
 	$city = intval(@$_GET['city']);
 	$isp = intval(@$_GET['isp']);
 	
-	echo iconv('CP1251', 'UTF-8', tr_list($trackers['Ретрекеры '.$trackers['Город'][$city].' '.$trackers['Провайдеры '. $trackers['Город'][$city]][$isp]]));
+	echo tr_list($trackers['Р РµС‚СЂРµРєРµСЂС‹ '.$trackers['Р“РѕСЂРѕРґ'][$city].' '.$trackers['РџСЂРѕРІР°Р№РґРµСЂС‹ '. $trackers['Р“РѕСЂРѕРґ'][$city]][$isp]]);
 	exit;
 }
 
@@ -24,7 +26,7 @@ session_start();
 
 if (isset($_REQUEST['submit']) && !empty($_FILES['resume']))
 {
-	if (!is_uploaded_file($_FILES['resume']['tmp_name'])) die("Неудача");
+	if (!is_uploaded_file($_FILES['resume']['tmp_name'])) die("РќРµСѓРґР°С‡Р°");
 	if (!($_SESSION['resume'] = bdecode_file($_FILES['resume']['tmp_name']))) die("Invalid resume.dat file");
 }
 
@@ -34,7 +36,7 @@ if (empty($_SESSION['resume']) || !isset($_REQUEST['act']))
 <html>
 
 <head>
-<meta http-equiv="content-type" content="text/html; charset=windows-1251" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 
 <link rel="stylesheet" href="<?=$cfg['base_url'];?>main.css?" type="text/css">
 
@@ -64,18 +66,18 @@ if (empty($_SESSION['resume']) || !isset($_REQUEST['act']))
 </tr>
 <tr>
 	<td class="row4 tCenter" style="padding: 4px";>
-		<p>Выберите свой <i>resume.dat</i> (находится в <b>%appdata%\uTorrent\resume.dat</b>)</p> <br />
+		<p>Р’С‹Р±РµСЂРёС‚Рµ СЃРІРѕР№ <i>resume.dat</i> (РЅР°С…РѕРґРёС‚СЃСЏ РІ <b>%appdata%\uTorrent\resume.dat</b>)</p> <br />
 			<input style="width: 25%;" type="file" size="50" name="resume" />&nbsp;
 		<br>
-		<p>Выберите свой город и провайдера</p>
+		<p>Р’С‹Р±РµСЂРёС‚Рµ СЃРІРѕР№ РіРѕСЂРѕРґ Рё РїСЂРѕРІР°Р№РґРµСЂР°</p>
 			<p class="select">
 				<select name="city" id="city" onchange="$('#isp').load('<?=$cfg['base_url'];?>torrents.php?isp_list='+$('#city').val());">
-					<option value="0">&raquo; Выберите город</option>
-					<?=iconv('UTF-8', 'CP1251', city_select($trackers['Город'], $city));?>
+					<option value="0">&raquo; Р’С‹Р±РµСЂРёС‚Рµ РіРѕСЂРѕРґ</option>
+					<?=city_select($trackers['Р“РѕСЂРѕРґ'], $city);?>
 				</select>
 				<select name="isp" id="isp"
 				onchange="$('#tr').load('resume.php?tr_list=1&city='+$('#city').val()+'&isp='+$('#isp').val());">
-					<option value="0">&raquo; Выберите провайдера</option>
+					<option value="0">&raquo; Р’С‹Р±РµСЂРёС‚Рµ РїСЂРѕРІР°Р№РґРµСЂР°</option>
 				</select>
 			</p>
 			<p>
@@ -83,9 +85,9 @@ if (empty($_SESSION['resume']) || !isset($_REQUEST['act']))
 			</p>
 			<p>
 				<label>
-				<input class="checkbox" type="checkbox" name="rt" value="1" checked="checked"/>Запомнить трекеры</label>
+				<input class="checkbox" type="checkbox" name="rt" value="1" checked="checked"/>Р—Р°РїРѕРјРЅРёС‚СЊ С‚СЂРµРєРµСЂС‹</label>
 			</p>
-		<input class="bold long" type="submit" name="submit" value="&nbsp;&nbsp;Поехали!&nbsp;&nbsp;" />
+		<input class="bold long" type="submit" name="submit" value="&nbsp;&nbsp;РџРѕРµС…Р°Р»Рё!&nbsp;&nbsp;" />
 	</td>
 </tr>
 </table>
@@ -108,7 +110,8 @@ else
 	
 	$resume = & $_SESSION['resume'];
 	
-	$tr_list = explode("\n", trim($_REQUEST['tr']));
+	$tr_list = str_replace("\r\n","\n",trim($_REQUEST['tr']));
+	$tr_list = explode("\n", $tr_list);
 	array_deep($tr_list, 'trim');
 	//print_r($tr_list);
 	//exit;
@@ -140,6 +143,7 @@ else
 					unset($tr);
 				}
 			}
+			$trackers[] = "http://retracker.local/announce";
 			$trackers[] = "http://re-tracker.ru/announce.php?". http_build_query($query);
 			$trackers = array_merge($trackers, $tr_list);
 			$trackers = array_unique($trackers);
@@ -148,7 +152,7 @@ else
 		}
 	}
 	// Send to client
-	header("Content-Type: application/octet-stream; charset=windows-1251; name=\"resume.dat\"");
+	header("Content-Type: application/octet-stream; charset=windows-1251; name=\"resume.dat\"", TRUE);
 	header("Content-Disposition: attachment; filename=\"resume.dat\"");
 	echo bencode($resume);
 }

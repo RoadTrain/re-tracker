@@ -52,47 +52,47 @@ function humn_size($size, $rounder = null, $min = null, $space = '&nbsp;')
 	return round($size, $rounder) . $space . $ext;
 }
 
-$lang['Next'] = 'След.';
-$lang['Previous'] = 'Пред.';
+$lang['Next'] = 'РЎР»РµРґ.';
+$lang['Previous'] = 'РџСЂРµРґ.';
 
-$lang['datetime']['Sunday'] = 'Воскресенье';
-$lang['datetime']['Monday'] = 'Понедельник';
-$lang['datetime']['Tuesday'] = 'Вторник';
-$lang['datetime']['Wednesday'] = 'Среда';
-$lang['datetime']['Thursday'] = 'Четверг';
-$lang['datetime']['Friday'] = 'Пятница';
-$lang['datetime']['Saturday'] = 'Суббота';
-$lang['datetime']['Sun'] = 'Вс';
-$lang['datetime']['Mon'] = 'Пн';
-$lang['datetime']['Tue'] = 'Вт';
-$lang['datetime']['Wed'] = 'Ср';
-$lang['datetime']['Thu'] = 'Чт';
-$lang['datetime']['Fri'] = 'Пт';
-$lang['datetime']['Sat'] = 'Сб';
-$lang['datetime']['January'] = 'Январь';
-$lang['datetime']['February'] = 'Февраль';
-$lang['datetime']['March'] = 'Март';
-$lang['datetime']['April'] = 'Апрель';
-$lang['datetime']['May'] = 'Май';
-$lang['datetime']['June'] = 'Июнь';
-$lang['datetime']['July'] = 'Июль';
-$lang['datetime']['August'] = 'Август';
-$lang['datetime']['September'] = 'Сентябрь';
-$lang['datetime']['October'] = 'Октябрь';
-$lang['datetime']['November'] = 'Ноябрь';
-$lang['datetime']['December'] = 'Декабрь';
-$lang['datetime']['Jan'] = 'Янв';
-$lang['datetime']['Feb'] = 'Фев';
-$lang['datetime']['Mar'] = 'Мар';
-$lang['datetime']['Apr'] = 'Апр';
-$lang['datetime']['May'] = 'Май';
-$lang['datetime']['Jun'] = 'Июн';
-$lang['datetime']['Jul'] = 'Июл';
-$lang['datetime']['Aug'] = 'Авг';
-$lang['datetime']['Sep'] = 'Сен';
-$lang['datetime']['Oct'] = 'Окт';
-$lang['datetime']['Nov'] = 'Ноя';
-$lang['datetime']['Dec'] = 'Дек';
+$lang['datetime']['Sunday'] = 'Р’РѕСЃРєСЂРµСЃРµРЅСЊРµ';
+$lang['datetime']['Monday'] = 'РџРѕРЅРµРґРµР»СЊРЅРёРє';
+$lang['datetime']['Tuesday'] = 'Р’С‚РѕСЂРЅРёРє';
+$lang['datetime']['Wednesday'] = 'РЎСЂРµРґР°';
+$lang['datetime']['Thursday'] = 'Р§РµС‚РІРµСЂРі';
+$lang['datetime']['Friday'] = 'РџСЏС‚РЅРёС†Р°';
+$lang['datetime']['Saturday'] = 'РЎСѓР±Р±РѕС‚Р°';
+$lang['datetime']['Sun'] = 'Р’СЃ';
+$lang['datetime']['Mon'] = 'РџРЅ';
+$lang['datetime']['Tue'] = 'Р’С‚';
+$lang['datetime']['Wed'] = 'РЎСЂ';
+$lang['datetime']['Thu'] = 'Р§С‚';
+$lang['datetime']['Fri'] = 'РџС‚';
+$lang['datetime']['Sat'] = 'РЎР±';
+$lang['datetime']['January'] = 'РЇРЅРІР°СЂСЊ';
+$lang['datetime']['February'] = 'Р¤РµРІСЂР°Р»СЊ';
+$lang['datetime']['March'] = 'РњР°СЂС‚';
+$lang['datetime']['April'] = 'РђРїСЂРµР»СЊ';
+$lang['datetime']['May'] = 'РњР°Р№';
+$lang['datetime']['June'] = 'РСЋРЅСЊ';
+$lang['datetime']['July'] = 'РСЋР»СЊ';
+$lang['datetime']['August'] = 'РђРІРіСѓСЃС‚';
+$lang['datetime']['September'] = 'РЎРµРЅС‚СЏР±СЂСЊ';
+$lang['datetime']['October'] = 'РћРєС‚СЏР±СЂСЊ';
+$lang['datetime']['November'] = 'РќРѕСЏР±СЂСЊ';
+$lang['datetime']['December'] = 'Р”РµРєР°Р±СЂСЊ';
+$lang['datetime']['Jan'] = 'РЇРЅРІ';
+$lang['datetime']['Feb'] = 'Р¤РµРІ';
+$lang['datetime']['Mar'] = 'РњР°СЂ';
+$lang['datetime']['Apr'] = 'РђРїСЂ';
+$lang['datetime']['May'] = 'РњР°Р№';
+$lang['datetime']['Jun'] = 'РСЋРЅ';
+$lang['datetime']['Jul'] = 'РСЋР»';
+$lang['datetime']['Aug'] = 'РђРІРі';
+$lang['datetime']['Sep'] = 'РЎРµРЅ';
+$lang['datetime']['Oct'] = 'РћРєС‚';
+$lang['datetime']['Nov'] = 'РќРѕСЏ';
+$lang['datetime']['Dec'] = 'Р”РµРє';
 
 // Create date/time from format and timezone
 function create_date($format, $gmepoch, $tz = null)
@@ -217,9 +217,9 @@ function tr_list($tr_ary)
 {
 	$out = '';
 	
-	for($i = 1; $i <= ($tr_ary['Количество']); $i++)
+	for($i = 1; $i <= ($tr_ary['РљРѕР»РёС‡РµСЃС‚РІРѕ']); $i++)
 	{
-		if (!strpos($tr_ary[$i], 're-tracker.ru'))
+		if (!strpos($tr_ary[$i], 're-tracker.ru') && !strpos($tr_ary[$i], 'retracker.local'))
 			$out .= $tr_ary[$i] . "\n";
 	}
 	
@@ -228,7 +228,7 @@ function tr_list($tr_ary)
 
 function get_trackers($string = false)
 {
-	global $cache, $cfg, $db;
+	global $cache;
 	$trackers = $cache->get('new_trackers');
 	if (!empty($trackers) && sizeof($trackers) > 3)
 	{
@@ -241,38 +241,38 @@ function get_trackers($string = false)
 	
 	$trackers["city"][] = '; Created ' . date("d.m.Y");
 	$trackers["city"][] = '';
-	$trackers["city"][] = '[Город]';
-	$trackers["city"][] = 'Количество=' . sizeof($citys);
-	$array['Город']["Количество"] = sizeof($citys);
+	$trackers["city"][] = '[Р“РѕСЂРѕРґ]';
+	$trackers["city"][] = 'РљРѕР»РёС‡РµСЃС‚РІРѕ=' . sizeof($citys);
+	$array['Р“РѕСЂРѕРґ']["РљРѕР»РёС‡РµСЃС‚РІРѕ"] = sizeof($citys);
 	$i = $j = $k = 0;
 	foreach ($citys as $id_city => $city)
 	{
 		$i++;
-		$city_name = iconv("UTF-8", "CP1251", $city);
+		$city_name = $city;
 		$trackers["city"][] = $i . "=" . $city_name;
-		$array['Город'][$i] = $city_name;
+		$array['Р“РѕСЂРѕРґ'][$i] = $city_name;
 		$isps = GetProviders($id_city);
-		$trackers["isp_" . $id_city][] = '[Провайдеры ' . $city_name . ']';
-		$trackers["isp_" . $id_city][] = 'Количество=' . sizeof($isps);
-		$array['Провайдеры ' . $city_name . '']["Количество"] = sizeof($isps);
+		$trackers["isp_" . $id_city][] = '[РџСЂРѕРІР°Р№РґРµСЂС‹ ' . $city_name . ']';
+		$trackers["isp_" . $id_city][] = 'РљРѕР»РёС‡РµСЃС‚РІРѕ=' . sizeof($isps);
+		$array['РџСЂРѕРІР°Р№РґРµСЂС‹ ' . $city_name . '']["РљРѕР»РёС‡РµСЃС‚РІРѕ"] = sizeof($isps);
 		$j = 0;
 		foreach ($isps as $id_isp => $isp)
 		{
 			$j++;
-			$isp_name = iconv("UTF-8", "CP1251", $isp);
+			$isp_name = $isp;
 			$trackers["isp_" . $id_city][] = $j . '=' . $isp_name;
-			$array['Провайдеры ' . $city_name][$j] = $isp_name;
+			$array['РџСЂРѕРІР°Р№РґРµСЂС‹ ' . $city_name][$j] = $isp_name;
 			$retrackers = GetRetrackers($id_city, $id_isp);
-			$trackers["ret_" . $id_city . '_' . $id_isp][] = '[Ретрекеры ' . $city_name . ' ' . $isp_name . ']';
-			$trackers["ret_" . $id_city . '_' . $id_isp][] = 'Количество=' . sizeof($retrackers);
-			$array['Ретрекеры ' . $city_name . ' ' . $isp_name]["Количество"] = sizeof($retrackers);
+			$trackers["ret_" . $id_city . '_' . $id_isp][] = '[Р РµС‚СЂРµРєРµСЂС‹ ' . $city_name . ' ' . $isp_name . ']';
+			$trackers["ret_" . $id_city . '_' . $id_isp][] = 'РљРѕР»РёС‡РµСЃС‚РІРѕ=' . sizeof($retrackers);
+			$array['Р РµС‚СЂРµРєРµСЂС‹ ' . $city_name . ' ' . $isp_name]["РљРѕР»РёС‡РµСЃС‚РІРѕ"] = sizeof($retrackers);
 			$k = 0;
 			foreach ($retrackers as $id_ret => $ret)
 			{
 				$k++;
-				$ret_name = iconv("UTF-8", "CP1251", $ret['retracker']);
+				$ret_name = $ret['retracker'];
 				$trackers["ret_" . $id_city . '_' . $id_isp][] = $k . '=' . $ret_name;
-				$array['Ретрекеры ' . $city_name . ' ' . $isp_name][$k] = $ret_name;
+				$array['Р РµС‚СЂРµРєРµСЂС‹ ' . $city_name . ' ' . $isp_name][$k] = $ret_name;
 			}
 		}
 	}
@@ -281,7 +281,7 @@ function get_trackers($string = false)
 	{
 		$out .= implode("\r\n", $trackers[$key]) . "\r\n\r\n";
 	}
-	$out = iconv("CP1251", "UTF-16", $out);
+	$out = iconv("UTF-8", "UTF-16", $out);
 	
 	$cache->set('trackers_list', $out, TRACKERS_CACHE_EXPIRE);
 	$cache->set('new_trackers', $array, TRACKERS_CACHE_EXPIRE);
@@ -397,7 +397,7 @@ function generate_pagination($base_url, $num_items, $per_page, $start_item, $add
 	
 	}
 	
-	$return = ($page_string) ? '<b align="right">Страницы:</b>&nbsp;&nbsp;' . $page_string : '';
+	$return = ($page_string) ? '<b align="right">РЎС‚СЂР°РЅРёС†С‹:</b>&nbsp;&nbsp;' . $page_string : '';
 	
 	return str_replace('&amp;start=0', '', $return);
 }
@@ -627,11 +627,11 @@ function bdecode_r($str, &$pos)
 }
 
 /**
- *  Функция возвращает файл и строку вызова (трассировка назад по вызовам функций).
- *  $step == 0 - файл и строка вызова этой функции
+ *  Р¤СѓРЅРєС†РёСЏ РІРѕР·РІСЂР°С‰Р°РµС‚ С„Р°Р№Р» Рё СЃС‚СЂРѕРєСѓ РІС‹Р·РѕРІР° (С‚СЂР°СЃСЃРёСЂРѕРІРєР° РЅР°Р·Р°Рґ РїРѕ РІС‹Р·РѕРІР°Рј С„СѓРЅРєС†РёР№).
+ *  $step == 0 - С„Р°Р№Р» Рё СЃС‚СЂРѕРєР° РІС‹Р·РѕРІР° СЌС‚РѕР№ С„СѓРЅРєС†РёРё
  *  @access public
- *  @return array Структура: array( '/home/site/filename.inc', 222 )
- *  @param integer $step Шаг назад
+ *  @return array РЎС‚СЂСѓРєС‚СѓСЂР°: array( '/home/site/filename.inc', 222 )
+ *  @param integer $step РЁР°Рі РЅР°Р·Р°Рґ
  */
 function LastFileLine($step = 0)
 {
@@ -656,7 +656,7 @@ function LastFileLine($step = 0)
 	}
 	else
 	{
-		die('[{Версия PHP4 должна быть равна 4.3.1 или выше}]');
+		die('[{Р’РµСЂСЃРёСЏ PHP4 РґРѕР»Р¶РЅР° Р±С‹С‚СЊ СЂР°РІРЅР° 4.3.1 РёР»Рё РІС‹С€Рµ}]');
 	}
 	
 	unset($bt, $step);
@@ -664,12 +664,12 @@ function LastFileLine($step = 0)
 }
 
 /**
- *  Временная функция для тестирования скриптов.
- *  Вывод текста.
+ *  Р’СЂРµРјРµРЅРЅР°СЏ С„СѓРЅРєС†РёСЏ РґР»СЏ С‚РµСЃС‚РёСЂРѕРІР°РЅРёСЏ СЃРєСЂРёРїС‚РѕРІ.
+ *  Р’С‹РІРѕРґ С‚РµРєСЃС‚Р°.
  *  @access public
- *  @param mixed $text Текст для записи
- *  @param boolean $die Остановить скрипты
- *  @param boolean $tofile Вывести в файл debug
+ *  @param mixed $text РўРµРєСЃС‚ РґР»СЏ Р·Р°РїРёСЃРё
+ *  @param boolean $die РћСЃС‚Р°РЅРѕРІРёС‚СЊ СЃРєСЂРёРїС‚С‹
+ *  @param boolean $tofile Р’С‹РІРµСЃС‚Рё РІ С„Р°Р№Р» debug
  *  @return void
  */
 function debug($text, $die = true, $tofile = false)
@@ -699,12 +699,12 @@ function debug($text, $die = true, $tofile = false)
 }
 
 /**
- *  Ассоциирует значения массива по содержимому указаного поля.
- *  Порядок элементов сохраняется.
+ *  РђСЃСЃРѕС†РёРёСЂСѓРµС‚ Р·РЅР°С‡РµРЅРёСЏ РјР°СЃСЃРёРІР° РїРѕ СЃРѕРґРµСЂР¶РёРјРѕРјСѓ СѓРєР°Р·Р°РЅРѕРіРѕ РїРѕР»СЏ.
+ *  РџРѕСЂСЏРґРѕРє СЌР»РµРјРµРЅС‚РѕРІ СЃРѕС…СЂР°РЅСЏРµС‚СЃСЏ.
  *  @access public
- *  @param string $field Название существующего в массиве поля
- *  @param array $array Неассоциированный массив
- *  @return array Ассоциированный массив
+ *  @param string $field РќР°Р·РІР°РЅРёРµ СЃСѓС‰РµСЃС‚РІСѓСЋС‰РµРіРѕ РІ РјР°СЃСЃРёРІРµ РїРѕР»СЏ
+ *  @param array $array РќРµР°СЃСЃРѕС†РёРёСЂРѕРІР°РЅРЅС‹Р№ РјР°СЃСЃРёРІ
+ *  @return array РђСЃСЃРѕС†РёРёСЂРѕРІР°РЅРЅС‹Р№ РјР°СЃСЃРёРІ
  */
 function assoc($field, $array)
 {
@@ -736,9 +736,9 @@ function GetCitys($from_cache = true)
 	{
 		$out = array();
 	}
-	$db->query("SET NAMES utf8");
+	
 	$list = $db->fetch_rowset("SELECT `id`,`name` FROM `tracker_city` ORDER BY `id` ASC");
-	$db->query("SET NAMES cp1251");
+	
 	foreach ($list as $row)
 	{
 		if ($row['name'])
@@ -773,7 +773,6 @@ function GetProviders($by_city = null, $from_cache = true)
 	}
 	
 	$citys = GetCitys();
-	$db->query("SET NAMES utf8");
 	if ($by_city !== NULL && isset($citys[$by_city]))
 	{
 		$list = $db->fetch_rowset("SELECT DISTINCT(`tracker_provider`.`id`),`tracker_provider`.`name` FROM `tracker_provider`,`tracker_retrackers` WHERE `tracker_provider`.`id`=`tracker_retrackers`.`id_prov` AND `tracker_retrackers`.`id_city`=" . intval($by_city) . " ORDER BY `tracker_provider`.`id` ASC");
@@ -782,7 +781,6 @@ function GetProviders($by_city = null, $from_cache = true)
 	{
 		$list = $db->fetch_rowset("SELECT `id`,`name` FROM `tracker_provider` ORDER BY `id` ASC");
 	}
-	$db->query("SET NAMES cp1251");
 	
 	foreach ($list as $row)
 	{
@@ -808,7 +806,7 @@ function GetRetrackers($by_city = null, $by_prov = null, $from_cache = true)
 	}
 	
 	$cache_key = md5($cache_tag . "retrackers_" . $by_city . "_" . $by_prov);
-	$list = null; $cache->get($cache_key);
+	$list = $cache->get($cache_key);
 	if (!empty($list) && $from_cache)
 	{
 		return $list;
@@ -824,9 +822,11 @@ function GetRetrackers($by_city = null, $by_prov = null, $from_cache = true)
 		return array();
 	}
 	
-	$db->query("SET NAMES utf8");
 	$list = $db->fetch_rowset("SELECT * FROM `tracker_retrackers` WHERE " . ($by_city > 0 ? "`id_city`=" . $by_city . " AND " : "") . ($by_prov > 0 ? "`id_prov`=" . $by_prov . " AND " : "") . "`allow`=1 ORDER BY `id` ASC");
-	$db->query("SET NAMES cp1251");
+	
+	$list[] = array(
+			"retracker" => "http://retracker.local:80/announce"
+	);
 	$list[] = array(
 			"retracker" => "http://re-tracker.ru:80/announce.php"
 	);

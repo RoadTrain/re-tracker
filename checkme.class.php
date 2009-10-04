@@ -2,6 +2,7 @@
 
 class CheckMe
 {
+
 	public $timeout = 10;
 
 	public $one_shot = 10;
@@ -66,7 +67,11 @@ class CheckMe
 			}
 			
 			@ini_set('user_agent', $this->user_agent);
-			$html = @file_get_contents($comment, 0, stream_context_create(array('http'=>array('timeout'=>$this->timeout))));
+			$html = @file_get_contents($comment, 0, stream_context_create(array(
+					'http' => array(
+							'timeout' => $this->timeout
+					)
+			)));
 			$html = str_replace('<wbr>', '', str_replace('</wbr>', '', $html));
 			
 			$obj = str_get_html($html);
@@ -119,7 +124,10 @@ class CheckMe
 			
 			if ($return)
 			{
-				$name = iconv('CP1251', 'UTF-8', $name);
+				if (detect_encoding($name) == 'windows-1251')
+				{
+					$name = iconv("windows-1251", "utf-8", $name);
+				}
 				return '<a class="genmed" href="' . $comment . '" target="_blank"><b>' . $name . '</b></a>';
 			}
 			return TRUE;
@@ -170,9 +178,10 @@ class CheckMe
 	{
 		global $db;
 		
-//		if (detect_encoding($name)=='windows-1251') {
-//			$name = iconv("windows-1251","utf-8",$name);
-//		}
+		if (detect_encoding($name) == 'windows-1251')
+		{
+			$name = iconv("windows-1251", "utf-8", $name);
+		}
 		
 		$name = $db->escape(trim($name));
 		$sql = "UPDATE `tracker_stats` SET
