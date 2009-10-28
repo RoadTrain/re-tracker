@@ -27,7 +27,6 @@ class CheckMe
 		$this->blacklist[] = "beetorrent.homeip.net";
 		$this->blacklist[] = "download.kanet.ru";
 		$this->blacklist[] = "bt.od.ua";
-		//$this->blacklist[] = "free-torrents.org";
 		//$this->blacklist[] = "tseed.ru";
 		$this->blacklist[] = "torrent.elcomnet.ru";
 		$this->blacklist[] = "torrent.dml";
@@ -44,7 +43,7 @@ class CheckMe
 			return $return ? 'Invalid request' : FALSE;
 		}
 		
-		$sql = "SELECT `comment`, `last_check` FROM `tracker_stats` WHERE `torrent_id` = $torrent_id LIMIT 1";
+		$sql = "SELECT `comment`, `name`, `info_hash`, `last_check` FROM `tracker_stats` WHERE `torrent_id` = $torrent_id LIMIT 1";
 		$row = $db->fetch_row($sql);
 		
 		if (empty($row))
@@ -53,10 +52,14 @@ class CheckMe
 		}
 		
 		$comment = trim($row['comment']);
+		$name = trim($row['name']);
+		if (empty($comment) && empty($name))
+		{
+			$comment = "http://isohunt.com/torrents/?ihq=" . $row['info_hash'];
+		}
 		if (is_url($comment))
 		{
 			$name = $this->getNameFromUrl($comment);
-			
 			if ($update)
 			{
 				$this->updateData($torrent_id, $name);
@@ -156,6 +159,14 @@ class CheckMe
 		{
 			$b = $obj->find('a.index b', 0);
 		}
+		elseif (strpos($comment, 'isohunt.com'))
+		{
+			$b = $obj->find('a#link1', 0);
+			if (is_object($b))
+			{
+				$b->plaintext = preg_replace("/(.*)<br\/?>/sim", "", $b->innertext);
+			}
+		}
 		else
 		{
 			$b = $obj->find('.maintitle', 0);
@@ -173,20 +184,19 @@ class CheckMe
 		return trim(str_replace("&nbsp;", " ", $name));
 	}
 
-	public function batchUpdate()
+	public function batchUpdate($update_empty = false)
 	{
 		global $db;
 		
-		ini_set("max_execution_time", 3600);
+		ini_set("max_execution_time", 600);
 		
 		$sql = "SELECT `comment`, `last_check`, `torrent_id`
 				FROM
 					`tracker_stats`
 				WHERE
 					`last_check` = 0
-				AND
-					`comment`!=''
-				ORDER BY `torrent_id` DESC
+				" . ($update_empty ? "" : " AND `comment`!=''") . "
+				ORDER BY `torrent_id` " . ($update_empty ? "ASC" : "DESC") . "
 				LIMIT " . $this->one_shot;
 		$rowset = $db->fetch_rowset($sql);
 		$count = 0;
