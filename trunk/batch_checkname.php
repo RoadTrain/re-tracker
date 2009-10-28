@@ -16,8 +16,9 @@ if ($work)
 {
 	return;
 }
-$cache->set("batch_checkname", true, 120);
+$cache->set("batch_checkname", true, 240);
 $check = new CheckMe();
 ini_set("max_execution_time", 600);
 $check->batchUpdate();
+$check->batchUpdate(true);
 $cache->rm("batch_checkname");
