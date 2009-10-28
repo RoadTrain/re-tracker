@@ -48,8 +48,9 @@ $cfg['compact_always']     = false; // Enable compact mode always (don't check c
 $cfg['ignore_reported_ip'] = false; // Ignore IP from GET query
 $cfg['allow_internal_ip']  = true; // Allow IP from local, etc
 $cfg['verify_reported_ip'] = false; // Verify reported IP?
-$cfg['base_path'] = isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : dirname(realpath(__FILE__)); // Without end slash
-$cfg['base_url'] = "/"; // Base url where retracker is located. End slash required. Example: /my_own_path/
+$cfg['base_path']		   = isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : dirname(realpath(__FILE__)); // Without end slash
+$cfg['base_url']		   = "/"; // Base url where retracker is located. End slash required. Example: /my_own_path/
+$cfg['skip_empty']		   = true; // Do not accept announce if statistic data is empty (name, comment, size)
 
 // Cache
 $cfg['cache_type'] = 'memcached'; // Available cache types: none, memcached
