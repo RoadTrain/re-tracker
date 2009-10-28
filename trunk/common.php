@@ -54,10 +54,10 @@ function cleanup()
 	$priority = ($cfg['tr_db_type'] == 'mysql') ? 'LOW_PRIORITY' : '';
 	
 	$peer_expire_time = TIMENOW - floor($cfg['announce_interval'] * $cfg['expire_factor']);
-	$db->query("DELETE $priority FROM $tracker WHERE update_time < $peer_expire_time LIMIT 100");
+	$db->query("DELETE $priority FROM $tracker WHERE update_time < $peer_expire_time LIMIT 10000");
 	
 	$torrent_expire_time = TIMENOW - TORRENTS_EXPIRE;
-	$db->query("DELETE $priority FROM $tracker_stats WHERE update_time < $torrent_expire_time LIMIT 100");
+	$db->query("DELETE $priority FROM $tracker_stats WHERE update_time < $torrent_expire_time LIMIT 10000");
 }
 
 function utime()
