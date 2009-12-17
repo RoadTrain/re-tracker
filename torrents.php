@@ -344,7 +344,7 @@ switch($sort)
 </thead>
 <?
 
-	$count_sql = "SELECT COUNT(*) AS count FROM $from $where_sql LIMIT 1";
+	$count_sql = "SELECT COUNT(DISTINCT(ts.torrent_id)) AS count FROM $from $where_sql LIMIT 1";
 	$count_key = md5($count_sql);
 	$count = $cache->get($count_key);
 	//DBG_LOG; echo "<tr><td colspan=6>Count SQL: ".$count_sql."</td></tr>";
@@ -362,7 +362,7 @@ switch($sort)
 	}
 	//DBG_LOG; echo "<tr><td colspan=6>Count: ".$count."</td></tr>";
 
-	$sql = "SELECT *
+	$sql = "SELECT DISTINCT(ts.torrent_id), ts.info_hash, ts.seeders, ts.leechers, ts.reg_time, ts.name, ts.size, ts.comment, ts.last_check
 			FROM $from
 			$where_sql
 			ORDER BY $order_sql $sort_sql
