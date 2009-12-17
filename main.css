@@ -1072,3 +1072,5 @@ pre, .pre {
 .tRight    { text-align: right !important; }
 .vBottom   { vertical-align: bottom !important; }
 .vTop      { vertical-align: top !important; }
+.silver { color: silver;}
+.silver a { color: silver; text-decoration: underline;}

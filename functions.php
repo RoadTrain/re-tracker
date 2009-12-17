@@ -126,7 +126,11 @@ function create_magnet($dn, $xl = false, $btih = '', $tr = '')
 	}
 	if ($tr)
 	{
-		$magnet .= '&tr=' . $tr; // gnutella sha1 (base32)
+		if(is_array($tr)) {
+			$magnet .= '&tr=' . implode("&tr=",$tr);
+		} else {
+			$magnet .= '&tr=' . $tr; // gnutella sha1 (base32)
+		}
 	}
 	return $magnet;
 }
@@ -833,4 +837,10 @@ function GetRetrackers($by_city = null, $by_prov = null, $from_cache = true)
 	
 	$from_cache ? $cache->set($cache_tag, $list, TRACKERS_CACHE_EXPIRE) : FALSE;
 	return $list;
+}
+
+function microtime_float()
+{
+    list($usec, $sec) = explode(" ", microtime());
+    return ((float)$usec + (float)$sec);
 }
