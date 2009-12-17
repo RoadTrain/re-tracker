@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS `tracker` (
   `isp` mediumint(2) NOT NULL DEFAULT '0',
   PRIMARY KEY (`peer_hash`),
   KEY `torrent_id` (`torrent_id`),
-  KEY `isp` (`city`,`isp`)
+  KEY `isp` (`city`,`isp`),
+  KEY `ip` (`ip`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 DROP TABLE IF EXISTS `tracker_stats`;

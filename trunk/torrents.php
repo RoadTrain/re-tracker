@@ -1,5 +1,7 @@
 <?php
 
+//To enable debug log uncomment all lines with DBG_LOG
+
 ini_set("display_errors","Off");
 
 include_once (dirname(realpath(__FILE__)).'/common.php');
@@ -37,8 +39,10 @@ unset($http_query);
 if(!isset($_GET['start']) && isset($_SESSION['last_search']) && $_SESSION['last_search'] > (TIMENOW - $search_intrv))
 {
 	$seconds = ($search_intrv + $_SESSION['last_search']) - TIMENOW;
+	//DBG_LOG; if(0) {
 	include_once 'message.htm';
 	die();
+	//DBG_LOG; }
 }
 
 $_SESSION['last_search'] = TIMENOW;
@@ -144,7 +148,6 @@ $GPC = array(
 	'title_match'   => array('nm',   0,    'string',  false),
 	'order'         => array('o',    1,       'int',   true),
 	'sort'          => array('s',    2,       'int',   true),
-	'seed_exist'    => array('sd',   0,       'int',   true),
 	'desc_exist'    => array('ds',   0,       'int',   true),
 	// City & ISP
 	'city'          => array('city', 0,       'int',   true),
@@ -165,7 +168,7 @@ foreach ($GPC as $name => $params)
 	}
 }
 
-$title_match = sqlwildcardesc($db->escape($title_match));
+$title_match = sqlwildcardesc($db->escape(trim($title_match)));
 
 switch($order)
 {
@@ -195,26 +198,27 @@ $join_tr = false;
 $iptype = verify_ip($_SERVER['REMOTE_ADDR']);
 $ip = $db->escape(encode_ip($_SERVER['REMOTE_ADDR']));
 
-$where = array();
+$it_is_hash = $title_match && preg_match("/[a-z0-9]{20}/si", $title_match);
 
-if($seed_exist)  { $where[] = "ts.seeders > 0";}
+$where = array();
 if($active)      { $where[] = "(ts.seeders > 0 OR ts.leechers > 0)";}
-if($desc_exist)  { $where[] = "ts.name != ''";}
-if($title_match) { $where[] = "ts.name LIKE '%$title_match%'";}
+if($title_match && !$it_is_hash) { $where[] = "ts.name LIKE '%$title_match%'";}
+else if($title_match && $it_is_hash)  { $where[] = "ts.info_hash = '".strtolower($title_match)."'";}
+else if($desc_exist)  { $where[] = "ts.name != ''";}
 
 if ($city || $isp || $my)
 {
-	$where = array_reverse($where);
+	$from .= ", ".$tracker." tr";
 	$tmp = array();
-	$city ? $tmp[] = "tr.city = ".$city : NULL;
-	$isp ? $tmp[] = "tr.isp = ".$isp : NULL;
 	$my && ($iptype == 'ipv4') ? $tmp[] = "tr.ip   = '$ip'" : null;
 	$my && ($iptype == 'ipv6') ? $tmp[] = "tr.ipv6 = '$ip'" : null;
-	$_sql = "ts.torrent_id IN (SELECT DISTINCT tr.torrent_id FROM ".$tracker." tr WHERE ".implode(" AND ",$tmp).")";
+	$city ? $tmp[] = "tr.city = ".$city : NULL;
+	$isp ? $tmp[] = "tr.isp = ".$isp : NULL;
+	$_sql = "ts.torrent_id =tr.torrent_id AND ".implode(" AND ",$tmp);
 	array_push($where,$_sql);
 	unset($tmp, $_sql);
-	$where = array_reverse($where);
 }
+
 
 $where_sql = !empty($where) ? 'WHERE '. implode(' AND ', $where) : '';
 
@@ -231,9 +235,6 @@ switch($sort)
 		break;
 }
 
-
-$admin = (isset($_REQUEST['adm']) AND $_REQUEST['adm']) ? true : false;
-setcookie('adm', $admin, TIMENOW + $search_opt_keep);
 ?>
 
 <form method="GET" name="post" action="torrents.php?<?=SID;?>">
@@ -286,7 +287,7 @@ setcookie('adm', $admin, TIMENOW + $search_opt_keep);
 		<tr>
 			<td colspan="1" width="50%">
 				<fieldset>
-				<legend>Название содержит</legend>
+				<legend>Найти в названии или по хешу</legend>
 				<div>
 					<p class="input">
 						<input style="width: 95%;" class="post" type="text" size="50" maxlength="60" name="nm" id="nm" value="<?=($title_match) ? $title_match : '';?>" />
@@ -343,28 +344,38 @@ setcookie('adm', $admin, TIMENOW + $search_opt_keep);
 </thead>
 <?
 
-	$count_sql = "SELECT COUNT(ts.torrent_id) AS count FROM $from $where_sql LIMIT 1";
+	$count_sql = "SELECT COUNT(*) AS count FROM $from $where_sql LIMIT 1";
 	$count_key = md5($count_sql);
-	$count = (int)$cache->get($count_key);
-	if (!$count && $my)
+	$count = $cache->get($count_key);
+	//DBG_LOG; echo "<tr><td colspan=6>Count SQL: ".$count_sql."</td></tr>";
+	if (empty($count))
 	{
+		//DBG_LOG; list($usec, $sec) = explode(" ", microtime());
+		//DBG_LOG; $start_time = (float)$usec + (float)$sec;
 		$row = $db->fetch_row($count_sql);
+		//DBG_LOG; list($usec, $sec) = explode(" ", microtime());
+		//DBG_LOG; $stop_time = (float)$usec + (float)$sec;
+		//DBG_LOG; echo "<tr><td colspan=6>Count Time: ".($stop_time-$start_time)."</td></tr>";
 		$count = (int) $row['count'];
-		$cache->set($count_key, $count, 1800);
-	} else {
-		$count = 1000;
-	}
 
-	$sql = "SELECT ts.torrent_id, ts.info_hash, ts.seeders, ts.leechers, ts.reg_time,
-				ts.name,
-				ts.size,
-				ts.comment,
-				ts.last_check
+		$cache->set($count_key, $count, 1800);
+	}
+	//DBG_LOG; echo "<tr><td colspan=6>Count: ".$count."</td></tr>";
+
+	$sql = "SELECT *
 			FROM $from
 			$where_sql
 			ORDER BY $order_sql $sort_sql
 			LIMIT $start, 25";
+			
+	//DBG_LOG; echo "<tr><td colspan=6>Select SQL: ".$sql."</td></tr>";
+	//DBG_LOG; list($usec, $sec) = explode(" ", microtime());
+	//DBG_LOG; $start_time = (float)$usec + (float)$sec;
 	$torset = $db->fetch_rowset($sql);
+	//DBG_LOG; list($usec, $sec) = explode(" ", microtime());
+	//DBG_LOG; $stop_time = (float)$usec + (float)$sec;
+	//DBG_LOG; echo "<tr><td colspan=6>Select Time: ".($stop_time-$start_time)."</td></tr>";
+	
 
 	$empty = array(
 		'torrent_id' => 0,
@@ -413,18 +424,20 @@ setcookie('adm', $admin, TIMENOW + $search_opt_keep);
 			$simple[] = "torrents.ru";
 			if (in_array($path['host'], $simple))
 			{
-				$download = str_replace("viewtopic", "dl", $comment);
+				if (preg_match("/torrents.ru/si",$path['host'])) {
+					$download = str_replace("viewtopic", "dl", str_replace("torrents.ru","dl.torrents.ru",$comment));
+				} else {
+					$download = str_replace("viewtopic", "dl", $comment);
+				}
 			}
 		}
 
 		$isp = $tor['city'] . '+' . $tor['isp'];
 
-		if ($admin)
-		{
-			$tr = rawurlencode("http://re-tracker.ru/announce.php?name=$name&size={$tor['size']}&comment=$comment&isp=$isp");
-			$magnet = create_magnet(urlencode($name), $tor['size'], strtoupper(base32_encode(hex2bin($info_hash))), $tr);
-		}
-		else $magnet = null;
+		$tr = array();
+		$tr[] = rawurlencode("http://retracker.local/announce");
+		$tr[] = rawurlencode("http://re-tracker.ru/announce.php?name=$name&size={$tor['size']}&comment=$comment&isp=$isp");
+		$magnet = create_magnet(urlencode($name), $tor['size'], strtoupper(base32_encode(hex2bin($info_hash))), $tr);
 
 		$added_time = create_date('H:i', $tor['reg_time']);
 		$added_date = create_date('j-M-y', $tor['reg_time']);
@@ -436,6 +449,7 @@ setcookie('adm', $admin, TIMENOW + $search_opt_keep);
 <tr class="tCenter" id="tor_<?=$torrent_id;?>">
 	<td class="row1">	<img src="<?=($is_url?$host:"http://re-tracker.ru");?>/favicon.ico" alt="pic" title="<?=($is_url?$path['host']:"Unknown");?>" width="16" height="16"/>	<div style="visibility: hidden; position: absolute; left: -1000px; top: -2000px;"><?=$host;?></div>	</td>
 	<td class="row4 med tLeft">
+		<a href="<?=$magnet;?>" title="Download this torrent via magnet link"><img src="<?=$cfg['base_url'];?>images/m.png" alt="Magnet" width="13" height="13"></a>
 		<span id="name_<?=$torrent_id;?>">
 		<? if ($tor_url) :?>
 			<a class="genmed" href="<?=$tor_url;?>"><?=(!empty($name) ? "<b>".$name."</b>" : "ссылка");?></a>
@@ -446,19 +460,15 @@ setcookie('adm', $admin, TIMENOW + $search_opt_keep);
 			<a href="javascript:void(0);" onclick="$(this).replaceWith('<im'+'g src=<?=$cfg['base_url'];?>images/updating.gif alt=pic title=Updating>'); $('#name_<?=$torrent_id;?>').load('checkname.php?torrent_id=<?=$torrent_id;?>&return=1'); return false;"><img src="<?=$cfg['base_url'];?>images/update.gif" alt="pic" title="Update"></a>
 		<? endif; ?>
 		</span>
-		<? if ($download) : ?><a class="seed dlDown" href="<?=$download;?>" title="Download torrent"><b>[D]</b></a><? endif; ?>
+		<? if ($download) : ?><a class="seed dlDown" href="<?=$download;?>" title="Download torrent directly from tracker"><b>[D]</b></a><? endif; ?>
 		<p>
-			<span style="color: silver;">[hash: <?=$info_hash;?>]</span>
+			<span class="silver">[hash: <a href="http://google.com/search?q=<?=$info_hash;?>" title="Search at Google"><?=$info_hash;?></a>]</span>
 			<?=(!empty($comment) && (!$is_url)) ? "<i><u>комментарий:</u></i> ".make_url($comment) : "" ; ?>
 		</p>
 	</td>
 	<td class="row4 small nowrap">
 		<s><?=$tor['size'];?></s>
-		<? if($admin) { ?>
-		<a class="small tr-dl" href="<?=$magnet;?>"><?=$size;?></a>
-		<? } else { ?>
 		<p class="small tr-dl"><?=$size;?></p>
-		<? } ?>
 	</td>
 	<td class="row4 seedmed" title="Раздают"><b><?=$seeders;?></b></td>
 	<td class="row4 leechmed" title="Качают"><b><?=$leechers;?></b></td>
