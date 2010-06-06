@@ -776,7 +776,15 @@ function GetProviders($by_city = null, $from_cache = true)
 		$out = array();
 	}
 	
-	$citys = GetCitys();
+	$citys = GetCitys($from_cache);
+	$i = 0;
+	foreach ($citys as $id => $name) {
+		$i++;
+		if($by_city == $i) {
+			$by_city = $id;
+			break;
+		}
+	}
 	if ($by_city !== NULL && isset($citys[$by_city]))
 	{
 		$list = $db->fetch_rowset("SELECT DISTINCT(`tracker_provider`.`id`),`tracker_provider`.`name` FROM `tracker_provider`,`tracker_retrackers` WHERE `tracker_provider`.`id`=`tracker_retrackers`.`id_prov` AND `tracker_retrackers`.`id_city`=" . intval($by_city) . " ORDER BY `tracker_provider`.`id` ASC");

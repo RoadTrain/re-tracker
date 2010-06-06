@@ -314,11 +314,7 @@ function array_deep(&$var, $fn, $one_dimensional = false, $array_only = false)
 // based on OpenTracker [http://whitsoftdev.com/opentracker]
 function bencode($var)
 {
-	if (is_string($var))
-	{
-		return strlen($var) . ':' . $var;
-	}
-	else if (is_int($var))
+	if (is_int($var))
 	{
 		return 'i' . $var . 'e';
 	}
@@ -370,7 +366,7 @@ function bencode($var)
 	}
 	else
 	{
-		return strlen($var) . ':' . $var;
+		return mb_strlen($var, "UTF-8") . ':' . $var;
 	}
 }
 
