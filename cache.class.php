@@ -103,7 +103,7 @@ class cache_memcached extends cache_common
 		{
 			$this->connect();
 		}
-		return ($this->connected) ? $this->memcache->delete($name) : false;
+		return ($this->connected) ? $this->memcache->delete($name, 0) : false;
 	}
 
 	protected function is_installed()

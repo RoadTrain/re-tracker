@@ -61,12 +61,13 @@ function AddRetracker($city, $isp, $retracker, $email) {
 		}
 		return "При добавлении ретрекера произошла ошибка, попробуйте повторить позже.";
 	}
-	ob_clean();
+	ob_end_clean();
+	ob_start();
 	require_once 'mail.php';
 	$message = ob_get_contents();
 	ob_clean();
 	
-	$mail = new ml_Mail("ru.retracker@gmail.com");
+	$mail = new ml_Mail("no-reply@re-tracker.ru");
 	$mail->make("Re-Tracker.ru: Добавление ретрекера",$message);
 	
 	return $mail->send($email)?"OK":"При отправке уведомления произошла ошибка, попробуйте добавить ретрекер ещё раз или свяжитесь с админимтрацией.";

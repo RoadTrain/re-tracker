@@ -46,7 +46,8 @@ if(!isset($_GET['start']) && isset($_SESSION['last_search']) && $_SESSION['last_
 }
 
 $_SESSION['last_search'] = TIMENOW;
-
+//DBG_LOG; list($usec, $sec) = explode(" ", microtime());
+//DBG_LOG; $page_start_time = (float)$usec + (float)$sec;
 ?>
 <html>
 
@@ -422,10 +423,13 @@ switch($sort)
 			$simple = array();
 			$simple[] = "pornolab.net";
 			$simple[] = "torrents.ru";
+			$simple[] = "rutracker.org";
 			if (in_array($path['host'], $simple))
 			{
 				if (preg_match("/torrents.ru/si",$path['host'])) {
-					$download = str_replace("viewtopic", "dl", str_replace("torrents.ru","dl.torrents.ru",$comment));
+					$download = str_replace("viewtopic", "dl", str_replace("torrents.ru","dl.rutracker.org",$comment));
+				} else if (preg_match("/rutracker.org/si",$path['host'])) {
+					$download = str_replace("viewtopic", "dl",str_replace("rutracker.org","dl.rutracker.org",$comment));
 				} else {
 					$download = str_replace("viewtopic", "dl", $comment);
 				}
@@ -449,6 +453,7 @@ switch($sort)
 <tr class="tCenter" id="tor_<?=$torrent_id;?>">
 	<td class="row1">	<img src="<?=($is_url?$host:"http://re-tracker.ru");?>/favicon.ico" alt="pic" title="<?=($is_url?$path['host']:"Unknown");?>" width="16" height="16"/>	<div style="visibility: hidden; position: absolute; left: -1000px; top: -2000px;"><?=$host;?></div>	</td>
 	<td class="row4 med tLeft">
+		<? if ($download) : ?><a href="<?=$download;?>" title="Download torrent directly from tracker"><img src="<?=$cfg['base_url'];?>images/t.png" alt="Torrent" width="13" height="13"></a><? endif; ?>
 		<a href="<?=$magnet;?>" title="Download this torrent via magnet link"><img src="<?=$cfg['base_url'];?>images/m.png" alt="Magnet" width="13" height="13"></a>
 		<span id="name_<?=$torrent_id;?>">
 		<? if ($tor_url) :?>
@@ -460,7 +465,6 @@ switch($sort)
 			<a href="javascript:void(0);" onclick="$(this).replaceWith('<im'+'g src=<?=$cfg['base_url'];?>images/updating.gif alt=pic title=Updating>'); $('#name_<?=$torrent_id;?>').load('checkname.php?torrent_id=<?=$torrent_id;?>&return=1'); return false;"><img src="<?=$cfg['base_url'];?>images/update.gif" alt="pic" title="Update"></a>
 		<? endif; ?>
 		</span>
-		<? if ($download) : ?><a class="seed dlDown" href="<?=$download;?>" title="Download torrent directly from tracker"><b>[D]</b></a><? endif; ?>
 		<p>
 			<span class="silver">[hash: <a href="http://google.com/search?q=<?=$info_hash;?>" title="Search at Google"><?=$info_hash;?></a>]</span>
 			<?=(!empty($comment) && (!$is_url)) ? "<i><u>комментарий:</u></i> ".make_url($comment) : "" ; ?>
@@ -521,5 +525,11 @@ $pagination = generate_pagination($pg_url, $count, 25, $start);
 </body>
 </html>
 <?
+//DBG_LOG; list($usec, $sec) = explode(" ", microtime());
+//DBG_LOG; $page_stop_time = (float)$usec + (float)$sec;
+//DBG_LOG; $time = $page_stop_time-$page_start_time;
+//DBG_LOG; if($time > 15) {
+//DBG_LOG; 	file_put_contents(dirname(realpath(__FILE__))."/cache_tr/".date("d.m.Y").".txt",$page_stop_time-$page_start_time." ".$_SERVER['QUERY_STRING']."\r\n",FILE_APPEND);
+//DBG_LOG; }
 ob_end_flush();
 ?>

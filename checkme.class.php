@@ -159,6 +159,10 @@ class CheckMe
 		{
 			$b = $obj->find('a.index b', 0);
 		}
+		elseif (strpos($comment, 'nntt.org'))
+		{
+			$b = $obj->find('h2 a.titles', 0);
+		}
 		elseif (strpos($comment, 'isohunt.com'))
 		{
 			$b = $obj->find('a#link1', 0);
