@@ -312,7 +312,7 @@ function array_deep(&$var, $fn, $one_dimensional = false, $array_only = false)
 }
 
 // based on OpenTracker [http://whitsoftdev.com/opentracker]
-function bencode($var)
+function bencode($var, $mb = true)
 {
 	if (is_int($var))
 	{
@@ -348,7 +348,7 @@ function bencode($var)
 				
 				foreach ($var as $key => $val)
 				{
-					$ret .= bencode($key) . bencode($val);
+					$ret .= bencode($key, $mb) . bencode($val, $mb);
 				}
 				return $ret . 'e';
 			}
@@ -358,7 +358,7 @@ function bencode($var)
 				
 				foreach ($var as $val)
 				{
-					$ret .= bencode($val);
+					$ret .= bencode($val, $mb);
 				}
 				return $ret . 'e';
 			}
@@ -366,7 +366,7 @@ function bencode($var)
 	}
 	else
 	{
-		return mb_strlen($var, "UTF-8") . ':' . $var;
+		return ($mb ? mb_strlen($var, 'UTF-8') : strlen($var)) . ':' . $var;
 	}
 }
 
@@ -573,4 +573,15 @@ class mysql_common
 		if (error_reporting())
 			trigger_error($msg, E_USER_ERROR);
 	}
+}
+
+function ob_dump($buffer = '')
+{
+	$size = strlen($buffer);
+	if ($size)
+	{
+		header('Content-Length: ' . $size);
+	}
+	
+	return $buffer;
 }

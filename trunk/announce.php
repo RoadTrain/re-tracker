@@ -14,6 +14,8 @@ if (0)
 
 include_once (dirname(realpath(__FILE__)) . '/common.php');
 
+ob_start('ob_dump');
+
 $announce_interval = $cfg['announce_interval'];
 
 if (!$cache->used || ($cache->get('next_cleanup') < TIMENOW))
@@ -298,7 +300,7 @@ if (!$output)
 	// Generate output
 	$output = array(
 			'interval' => (int)$announce_interval,  // tracker config: announce interval (sec?)
-			'min interval' => (int)1,  // tracker config: min interval (sec?)
+			'min interval' => (int)($announce_interval/2),  // tracker config: min interval (sec?)
 			'peers' => $peerset,
 			'peers6' => $peerset6,
 			'complete' => (int)$seeders,
@@ -310,5 +312,3 @@ if (!$output)
 
 // Return data to client
 echo bencode($output);
-
-exit();
