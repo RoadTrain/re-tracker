@@ -129,7 +129,7 @@ class CheckMe
 		}
 		elseif (strpos($comment, 'kinozal.tv'))
 		{
-			$b = $obj->find('b font[color=green]', 1);
+			$b = $obj->find('a font[color=blue]', 3);
 		}
 		elseif (strpos($comment, 'netlab.e2k.ru'))
 		{
@@ -151,7 +151,7 @@ class CheckMe
 		{
 			$b = $obj->find('h1.details_h1', 0);
 		}
-		elseif (strpos($comment, 'bigfangroup.org'))
+		elseif (strpos($comment, 'bigfangroup.org') || strpos($comment, '24-x.info'))
 		{
 			$b = $obj->find('a.index', 0);
 		}
@@ -163,6 +163,10 @@ class CheckMe
 		{
 			$b = $obj->find('h2 a.titles', 0);
 		}
+		elseif (strpos($comment, 'nnm-club.'))
+		{
+			$b = $obj->find('a.maintitle', 0);
+		}
 		elseif (strpos($comment, 'isohunt.com'))
 		{
 			$b = $obj->find('a#link1', 0);
@@ -173,12 +177,12 @@ class CheckMe
 		}
 		else
 		{
-			$b = $obj->find('.maintitle', 0);
+			$b = $obj->find('.maintitle a', 0);
 		}
 		
 		if (is_object($b))
 		{
-			$name = strval($b->plaintext);
+			$name = trim(strval($b->plaintext));
 		}
 		else
 		{
