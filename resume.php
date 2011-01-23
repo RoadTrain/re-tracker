@@ -24,14 +24,20 @@ $isp =  (int) @$_REQUEST['isp'];
 ob_start();
 session_start();
 
+$resume = array();
+
 if (isset($_REQUEST['submit']) && !empty($_FILES['resume']))
 {
 	if (!is_uploaded_file($_FILES['resume']['tmp_name'])) die("Неудача");
-	if (!($_SESSION['resume'] = bdecode_file($_FILES['resume']['tmp_name']))) die("Invalid resume.dat file");
+	$resume = bdecode_file($_FILES['resume']['tmp_name']);
+	if(!$resume) {
+		die("Invalid resume.dat file");
+	}
 }
-
-if (empty($_SESSION['resume']) || !isset($_REQUEST['act']))
+if (empty($resume) || !isset($_REQUEST['act']))
 {
+	$tr_list = isset($_COOKIE['tr_list']) ? $_COOKIE['tr_list'] : '';
+	$tr_list = ($tr_list && $gz = @base64_decode($tr_list)) ? @gzuncompress($gz) : '';
 ?>
 <html>
 
@@ -81,7 +87,7 @@ if (empty($_SESSION['resume']) || !isset($_REQUEST['act']))
 				</select>
 			</p>
 			<p>
-				<textarea class="mrg_4" name="tr" id="tr" rows="18" cols="92" style="width: 25%;"><?=(isset($_COOKIE['tr_list']) ? $_COOKIE['tr_list'] : '');?></textarea>
+				<textarea class="mrg_4" name="tr" id="tr" rows="18" cols="92" style="width: 25%;"><?=$tr_list;?></textarea>
 			</p>
 			<p>
 				<label>
@@ -106,15 +112,11 @@ if (empty($_SESSION['resume']) || !isset($_REQUEST['act']))
 }
 else
 {
-	(isset($_REQUEST['rt'])) ? setcookie('tr_list', $_REQUEST['tr'], TIMENOW + 30*86400) : null;
-	
-	$resume = & $_SESSION['resume'];
+	(isset($_REQUEST['rt'])) ? setcookie('tr_list', base64_encode(gzcompress($_REQUEST['tr'], 7)), TIMENOW + 30*86400) : null;
 	
 	$tr_list = str_replace("\r\n","\n",trim($_REQUEST['tr']));
 	$tr_list = explode("\n", $tr_list);
 	array_deep($tr_list, 'trim');
-	//print_r($tr_list);
-	//exit;
 	
 	foreach ($resume as $item => $data)
 	{
@@ -147,14 +149,13 @@ else
 			$trackers[] = "http://re-tracker.ru/announce.php?". http_build_query($query);
 			$trackers = array_merge($trackers, $tr_list);
 			$trackers = array_unique($trackers);
-			//array_deep($trackers, 'trim');
 			$resume[$item] = $data;
 		}
 	}
 	// Send to client
 	header("Content-Type: application/octet-stream; charset=windows-1251; name=\"resume.dat\"", TRUE);
 	header("Content-Disposition: attachment; filename=\"resume.dat\"");
-	echo bencode($resume);
+	echo bencode($resume, FALSE);
 }
 
 ob_end_flush();
